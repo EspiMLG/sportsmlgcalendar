@@ -17,7 +17,7 @@ credentials = Credentials.from_service_account_info(
 service = build('calendar', 'v3', credentials=credentials)
 
 # ID del calendario donde añadir los eventos
-calendar_id = 'primary'
+calendar_id = '482b569e5fd8fd1c9d2d19b3e2d06b4587d8f3490af5cf17d7b2a289e0f4516f@group.calendar.google.com'
 
 # Lista de partidos (aquí irían las consultas a la fuente de datos de los partidos)
 partidos = [
