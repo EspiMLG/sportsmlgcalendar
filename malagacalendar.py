@@ -1,40 +1,21 @@
-import json
 import os
-import pickle
-import tempfile
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
+import datetime
+from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
-# Leer credenciales desde las variables de entorno
+# Credenciales desde las variables de entorno
 credentials_json = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
-with tempfile.NamedTemporaryFile(delete=False, suffix='.json') as temp_file:
-    temp_file.write(credentials_json.encode())
-    temp_file_path = temp_file.name
 
-CREDENTIALS_FILE = temp_file_path
-TOKEN_FILE = 'token.pickle'
-SCOPES = ['https://www.googleapis.com/auth/calendar']
+# Credenciales de servicio para acceder a la API
+credentials = Credentials.from_service_account_info(
+    json.loads(credentials_json),
+    scopes=['https://www.googleapis.com/auth/calendar']
+)
 
-def get_credentials():
-    creds = None
-    if os.path.exists(TOKEN_FILE):
-        with open(TOKEN_FILE, 'rb') as token:
-            creds = pickle.load(token)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
-            creds = flow.run_local_server(port=0)
-        with open(TOKEN_FILE, 'wb') as token:
-            pickle.dump(creds, token)
-    return creds
+# Conectar con la API de Google Calendar
+service = build('calendar', 'v3', credentials=credentials)
 
-creds = get_credentials()
-service = build('calendar', 'v3', credentials=creds)
-
+# ID del calendario donde añadir los eventos
 calendar_id = 'primary'
 
 # Lista de partidos (aquí irían las consultas a la fuente de datos de los partidos)
@@ -83,6 +64,8 @@ partidos = [
     {"equipo": "Burgos", "fecha": "2025-06-01", "localidad": "local"}
 ]
 
+
+# Función para añadir o actualizar un evento en Google Calendar
 def add_or_update_event(partido):
     summary = f"Málaga CF vs {partido['equipo']}" if partido["localidad"] == "local" else f"{partido['equipo']} vs Málaga CF"
     start_date = datetime.datetime.strptime(partido["fecha"], "%Y-%m-%d").strftime("%Y-%m-%dT12:00:00")
@@ -104,17 +87,21 @@ def add_or_update_event(partido):
         },
     }
     
+    # Buscar evento existente por resumen (nombre del partido)
     events_result = service.events().list(calendarId=calendar_id, q=summary).execute()
     events = events_result.get('items', [])
     
     if events:
+        # Si el evento existe, actualizarlo
         event_id = events[0]['id']
         updated_event = service.events().update(calendarId=calendar_id, eventId=event_id, body=event).execute()
         print(f"Evento actualizado: {updated_event['summary']} (ID: {updated_event['id']})")
     else:
+        # Si el evento no existe, crearlo
         new_event = service.events().insert(calendarId=calendar_id, body=event).execute()
         print(f"Evento creado: {new_event['summary']} (ID: {new_event['id']})")
 
+# Añadir o actualizar todos los partidos en el calendario
 for partido in partidos:
     add_or_update_event(partido)
 
