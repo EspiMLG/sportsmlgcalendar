@@ -1,0 +1,29 @@
+name: Update Google Calendar
+
+on:
+  schedule:
+    - cron: '0 12 * * 3'  # Ejecutar todos los miércoles a las 12:00 UTC
+  workflow_dispatch:  # Permitir la ejecución manual
+
+jobs:
+  update-calendar:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
+
+    - name: Run update script
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+      run: python update_calendar.py
