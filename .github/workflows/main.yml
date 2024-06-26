@@ -26,4 +26,4 @@ jobs:
     - name: Run update script
       env:
         GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-      run: python update_calendar.py
+      run: python malagacalendar.py
