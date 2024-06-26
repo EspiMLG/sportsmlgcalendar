@@ -93,10 +93,20 @@ def add_or_update_event(partido):
     events = events_result.get('items', [])
     
     if events:
-        # Si el evento existe, actualizarlo
-        event_id = events[0]['id']
-        updated_event = service.events().update(calendarId=calendar_id, eventId=event_id, body=event).execute()
-        print(f"Evento actualizado: {updated_event['summary']} (ID: {updated_event['id']})")
+        existing_event = events[0]
+        
+        # Comparar el evento existente con el nuevo evento
+        if (existing_event['start']['dateTime'] == event['start']['dateTime'] and
+            existing_event['end']['dateTime'] == event['end']['dateTime'] and
+            existing_event['location'] == event['location'] and
+            existing_event['description'] == event['description']):
+            # Si los datos coinciden, no se realiza ninguna acción
+            print(f"El evento {event['summary']} ya existe y coincide con los datos más recientes. No se modifica.")
+        else:
+            # Si los datos no coinciden, actualizar el evento
+            event_id = existing_event['id']
+            updated_event = service.events().update(calendarId=calendar_id, eventId=event_id, body=event).execute()
+            print(f"Evento actualizado: {updated_event['summary']} (ID: {updated_event['id']})")
     else:
         # Si el evento no existe, crearlo
         new_event = service.events().insert(calendarId=calendar_id, body=event).execute()
