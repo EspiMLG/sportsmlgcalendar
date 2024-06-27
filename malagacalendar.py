@@ -1,6 +1,7 @@
 import os
 import datetime
 import json
+import time
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
@@ -65,7 +66,6 @@ partidos = [
     {"equipo": "Burgos", "fecha": "2025-06-01", "localidad": "local"}
 ]
 
-
 # Función para añadir o actualizar un evento en Google Calendar
 def add_or_update_event(partido):
     summary = f"Málaga CF vs {partido['equipo']}" if partido["localidad"] == "local" else f"{partido['equipo']} vs Málaga CF"
@@ -96,23 +96,29 @@ def add_or_update_event(partido):
         existing_event = events[0]
         
         # Comparar el evento existente con el nuevo evento
-        if (existing_event['start']['dateTime'] == event['start']['dateTime'] and
-            existing_event['end']['dateTime'] == event['end']['dateTime'] and
-            existing_event['location'] == event['location'] and
-            existing_event['description'] == event['description']):
-            # Si los datos coinciden, no se realiza ninguna acción
+        same_start = existing_event['start']['dateTime'] == event['start']['dateTime']
+        same_end = existing_event['end']['dateTime'] == event['end']['dateTime']
+        same_location = existing_event['location'] == event['location']
+        same_description = existing_event['description'] == event['description']
+
+        if same_start and same_end and same_location and same_description:
             print(f"El evento {event['summary']} ya existe y coincide con los datos más recientes. No se modifica.")
         else:
             # Si los datos no coinciden, actualizar el evento
             event_id = existing_event['id']
             updated_event = service.events().update(calendarId=calendar_id, eventId=event_id, body=event).execute()
             print(f"Evento actualizado: {updated_event['summary']} (ID: {updated_event['id']})")
+            print(f"  - same_start: {same_start}, same_end: {same_end}, same_location: {same_location}, same_description: {same_description}")
+            print(f"  - existing_event: {existing_event}")
+            print(f"  - new_event: {event}")
+            time.sleep(1)  # Espera de 1 segundo para evitar problemas de tasa de solicitudes
     else:
-        # Si el evento no existe, crearlo
-        new_event = service.events().insert(calendarId=calendar_id, body=event).execute()
-        print(f"Evento creado: {new_event['summary']} (ID: {new_event['id']})")
+        # Si no hay eventos existentes, añadir uno nuevo
+        created_event = service.events().insert(calendarId=calendar_id, body=event).execute()
+        print(f"Evento creado: {created_event['summary']} (ID: {created_event['id']})")
+        time.sleep(1)  # Espera de 1 segundo para evitar problemas de tasa de solicitudes
 
-# Añadir o actualizar todos los partidos en el calendario
+# Procesar todos los partidos
 for partido in partidos:
     print(f"Procesando el partido: {partido['equipo']} en fecha {partido['fecha']} como {partido['localidad']}")
     add_or_update_event(partido)
