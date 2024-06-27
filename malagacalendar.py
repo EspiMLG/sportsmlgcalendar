@@ -88,8 +88,17 @@ def add_or_update_event(partido):
         },
     }
     
-    # Buscar evento existente por resumen (nombre del partido)
-    events_result = service.events().list(calendarId=calendar_id, q=summary).execute()
+    # Buscar evento existente por resumen y fecha
+    time_min = datetime.datetime.strptime(partido["fecha"], "%Y-%m-%d").strftime("%Y-%m-%dT00:00:00Z")
+    time_max = datetime.datetime.strptime(partido["fecha"], "%Y-%m-%d").strftime("%Y-%m-%dT23:59:59Z")
+    
+    events_result = service.events().list(
+        calendarId=calendar_id,
+        q=summary,
+        timeMin=time_min,
+        timeMax=time_max,
+        singleEvents=True
+    ).execute()
     events = events_result.get('items', [])
     
     if events:
