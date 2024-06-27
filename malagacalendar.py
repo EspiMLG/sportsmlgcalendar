@@ -114,6 +114,7 @@ def add_or_update_event(partido):
 
 # Añadir o actualizar todos los partidos en el calendario
 for partido in partidos:
+    print(f"Procesando el partido: {partido['equipo']} en fecha {partido['fecha']} como {partido['localidad']}")
     add_or_update_event(partido)
 
 print("Todos los eventos han sido procesados.")
