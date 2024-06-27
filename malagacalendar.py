@@ -1,7 +1,8 @@
 import os
-import datetime
 import json
 import time
+import requests
+from bs4 import BeautifulSoup
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
@@ -20,101 +21,78 @@ service = build('calendar', 'v3', credentials=credentials)
 # ID del calendario donde añadir los eventos
 calendar_id = '482b569e5fd8fd1c9d2d19b3e2d06b4587d8f3490af5cf17d7b2a289e0f4516f@group.calendar.google.com'
 
-# Lista de partidos (aquí irían las consultas a la fuente de datos de los partidos)
-partidos = [
-    {"equipo": "Racing de Ferrol", "fecha": "2024-08-18", "localidad": "visitante"},
-    {"equipo": "Mirandés", "fecha": "2024-08-25", "localidad": "local"},
-    {"equipo": "Albacete", "fecha": "2024-09-01", "localidad": "local"},
-    {"equipo": "Córdoba", "fecha": "2024-09-08", "localidad": "visitante"},
-    {"equipo": "Huesca", "fecha": "2024-09-15", "localidad": "local"},
-    {"equipo": "Granada", "fecha": "2024-09-22", "localidad": "visitante"},
-    {"equipo": "Elche", "fecha": "2024-09-29", "localidad": "local"},
-    {"equipo": "Dépor", "fecha": "2024-10-06", "localidad": "visitante"},
-    {"equipo": "Cádiz", "fecha": "2024-10-13", "localidad": "visitante"},
-    {"equipo": "Oviedo", "fecha": "2024-10-20", "localidad": "local"},
-    {"equipo": "Tenerife", "fecha": "2024-10-23", "localidad": "visitante"},
-    {"equipo": "Eibar", "fecha": "2024-10-27", "localidad": "local"},
-    {"equipo": "Levante", "fecha": "2024-11-03", "localidad": "visitante"},
-    {"equipo": "Cartagena", "fecha": "2024-11-10", "localidad": "local"},
-    {"equipo": "Zaragoza", "fecha": "2024-11-17", "localidad": "visitante"},
-    {"equipo": "Racing", "fecha": "2024-11-24", "localidad": "local"},
-    {"equipo": "Castellón", "fecha": "2024-12-01", "localidad": "visitante"},
-    {"equipo": "Almería", "fecha": "2024-12-08", "localidad": "local"},
-    {"equipo": "Burgos", "fecha": "2024-12-15", "localidad": "visitante"},
-    {"equipo": "Eldense", "fecha": "2024-12-18", "localidad": "local"},
-    {"equipo": "Sporting", "fecha": "2024-12-22", "localidad": "visitante"},
-    {"equipo": "Dépor", "fecha": "2025-01-11", "localidad": "local"},
-    {"equipo": "Mirandés", "fecha": "2025-01-19", "localidad": "visitante"},
-    {"equipo": "Zaragoza", "fecha": "2025-01-26", "localidad": "local"},
-    {"equipo": "Racing", "fecha": "2025-02-02", "localidad": "visitante"},
-    {"equipo": "Levante", "fecha": "2025-02-09", "localidad": "local"},
-    {"equipo": "Cartagena", "fecha": "2025-02-16", "localidad": "visitante"},
-    {"equipo": "Tenerife", "fecha": "2025-02-23", "localidad": "local"},
-    {"equipo": "Almería", "fecha": "2025-03-02", "localidad": "visitante"},
-    {"equipo": "Cádiz", "fecha": "2025-03-09", "localidad": "local"},
-    {"equipo": "Albacete", "fecha": "2025-03-16", "localidad": "visitante"},
-    {"equipo": "Racing de Ferrol", "fecha": "2025-03-23", "localidad": "local"},
-    {"equipo": "Oviedo", "fecha": "2025-03-30", "localidad": "visitante"},
-    {"equipo": "Córdoba", "fecha": "2025-04-06", "localidad": "local"},
-    {"equipo": "Huesca", "fecha": "2025-04-13", "localidad": "visitante"},
-    {"equipo": "Eibar", "fecha": "2025-04-20", "localidad": "visitante"},
-    {"equipo": "Castellón", "fecha": "2025-04-27", "localidad": "local"},
-    {"equipo": "Granada", "fecha": "2025-05-04", "localidad": "local"},
-    {"equipo": "Eldense", "fecha": "2025-05-11", "localidad": "visitante"},
-    {"equipo": "Sporting", "fecha": "2025-05-18", "localidad": "local"},
-    {"equipo": "Elche", "fecha": "2025-05-25", "localidad": "visitante"},
-    {"equipo": "Burgos", "fecha": "2025-06-01", "localidad": "local"}
-]
-
-# Función para añadir o actualizar un evento en Google Calendar
-def add_or_update_event(partido):
-    summary = f"Málaga CF vs {partido['equipo']}" if partido["localidad"] == "local" else f"{partido['equipo']} vs Málaga CF"
-    start_date = datetime.datetime.strptime(partido["fecha"], "%Y-%m-%d").strftime("%Y-%m-%dT12:00:00")
-    end_date = (datetime.datetime.strptime(partido["fecha"], "%Y-%m-%d") + datetime.timedelta(hours=2)).strftime("%Y-%m-%dT14:00:00")
-    
-    location = "Estadio La Rosaleda" if partido["localidad"] == "local" else "Estadio Visitante"
-    
-    event = {
-        'summary': summary,
-        'location': location,
-        'description': f"Partido de la jornada {partidos.index(partido) + 1}",
-        'start': {
-            'dateTime': start_date,
-            'timeZone': 'Europe/Madrid',
-        },
-        'end': {
-            'dateTime': end_date,
-            'timeZone': 'Europe/Madrid',
-        },
+def consultar_proximo_partido():
+    url = "https://www.google.com/search?q=próximo+partido+del+Málaga+CF"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
     }
     
-    # Buscar evento existente por resumen y fecha
-    time_min = datetime.datetime.strptime(partido["fecha"], "%Y-%m-%d").strftime("%Y-%m-%dT00:00:00Z")
-    time_max = datetime.datetime.strptime(partido["fecha"], "%Y-%m-%d").strftime("%Y-%m-%dT23:59:59Z")
+    response = requests.get(url, headers=headers)
+    soup = BeautifulSoup(response.text, 'html.parser')
     
-    events_result = service.events().list(
-        calendarId=calendar_id,
-        q=summary,
-        timeMin=time_min,
-        timeMax=time_max,
-        singleEvents=True
-    ).execute()
-    events = events_result.get('items', [])
-    
-    if events:
-        existing_event = events[0]
+    # Aquí asumimos que los datos del próximo partido están en un formato específico
+    # Esto puede necesitar ajustes dependiendo del formato real de la página web
+    try:
+        match_info = soup.find('div', class_='BNeawe iBp4i AP7Wnd').text
+        date_time = soup.find('div', class_='BNeawe tAd8D AP7Wnd').text
+        teams = match_info.split(' - ')
         
+        oponente = teams[1] if "Málaga CF" in teams[0] else teams[0]
+        fecha_hora_inicio = date_time.split(' ')[0] + "T" + date_time.split(' ')[1] + ":00"
+        fecha_hora_fin = fecha_hora_inicio.split(':')[0] + ":00:00"  # Asumimos una duración de 2 horas
+        localidad = "local" if "Málaga CF" in teams[0] else "visitante"
+        descripcion = "Próximo partido del Málaga CF"
+        
+        return {
+            "oponente": oponente,
+            "fecha_hora_inicio": fecha_hora_inicio,
+            "fecha_hora_fin": fecha_hora_fin,
+            "localidad": localidad,
+            "descripcion": descripcion
+        }
+    except Exception as e:
+        print(f"No se pudo extraer la información del próximo partido: {e}")
+        return None
+
+def add_or_update_event(event_details):
+    summary_local = f"Málaga CF vs {event_details['oponente']}"
+    summary_visitante = f"{event_details['oponente']} vs Málaga CF"
+
+    # Consultar si hay eventos existentes por resumen (nombre del partido)
+    events_local = service.events().list(calendarId=calendar_id, q=summary_local).execute().get('items', [])
+    events_visitante = service.events().list(calendarId=calendar_id, q=summary_visitante).execute().get('items', [])
+
+    existing_event = None
+    if events_local:
+        existing_event = next((event for event in events_local if event['start']['dateTime'] == event_details['fecha_hora_inicio']), None)
+    elif events_visitante:
+        existing_event = next((event for event in events_visitante if event['start']['dateTime'] == event_details['fecha_hora_inicio']), None)
+
+    if existing_event:
         # Comparar el evento existente con el nuevo evento
-        same_start = existing_event['start']['dateTime'] == event['start']['dateTime']
-        same_end = existing_event['end']['dateTime'] == event['end']['dateTime']
-        same_location = existing_event['location'] == event['location']
-        same_description = existing_event['description'] == event['description']
+        same_start = existing_event['start']['dateTime'] == event_details['fecha_hora_inicio']
+        same_end = existing_event['end']['dateTime'] == event_details['fecha_hora_fin']
+        same_location = existing_event['location'] == event_details['location']
+        same_description = existing_event['description'] == event_details['descripcion']
 
         if same_start and same_end and same_location and same_description:
-            print(f"El evento {event['summary']} ya existe y coincide con los datos más recientes. No se modifica.")
+            print(f"El evento {event_details['oponente']} ya existe y coincide con los datos más recientes. No se modifica.")
         else:
             # Si los datos no coinciden, actualizar el evento
             event_id = existing_event['id']
+            event = {
+                'summary': summary_local if event_details['localidad'] == 'local' else summary_visitante,
+                'location': 'Estadio La Rosaleda' if event_details['localidad'] == 'local' else 'Estadio Visitante',
+                'description': event_details.get('descripcion', ''),
+                'start': {
+                    'dateTime': event_details['fecha_hora_inicio'],
+                    'timeZone': 'Europe/Madrid',
+                },
+                'end': {
+                    'dateTime': event_details['fecha_hora_fin'],
+                    'timeZone': 'Europe/Madrid',
+                },
+            }
             updated_event = service.events().update(calendarId=calendar_id, eventId=event_id, body=event).execute()
             print(f"Evento actualizado: {updated_event['summary']} (ID: {updated_event['id']})")
             print(f"  - same_start: {same_start}, same_end: {same_end}, same_location: {same_location}, same_description: {same_description}")
@@ -123,13 +101,34 @@ def add_or_update_event(partido):
             time.sleep(1)  # Espera de 1 segundo para evitar problemas de tasa de solicitudes
     else:
         # Si no hay eventos existentes, añadir uno nuevo
+        event = {
+            'summary': summary_local if event_details['localidad'] == 'local' else summary_visitante,
+            'location': 'Estadio La Rosaleda' if event_details['localidad'] == 'local' else 'Estadio Visitante',
+            'description': event_details.get('descripcion', ''),
+            'start': {
+                'dateTime': event_details['fecha_hora_inicio'],
+                'timeZone': 'Europe/Madrid',
+            },
+            'end': {
+                'dateTime': event_details['fecha_hora_fin'],
+                'timeZone': 'Europe/Madrid',
+            },
+        }
         created_event = service.events().insert(calendarId=calendar_id, body=event).execute()
         print(f"Evento creado: {created_event['summary']} (ID: {created_event['id']})")
         time.sleep(1)  # Espera de 1 segundo para evitar problemas de tasa de solicitudes
 
-# Procesar todos los partidos
-for partido in partidos:
-    print(f"Procesando el partido: {partido['equipo']} en fecha {partido['fecha']} como {partido['localidad']}")
-    add_or_update_event(partido)
+def actualizar_proximo_partido():
+    # Consultar el próximo partido del Málaga CF
+    proximo_partido = consultar_proximo_partido()
+    
+    if proximo_partido:
+        print(f"Próximo partido encontrado: {proximo_partido}")
+        
+        # Llamar a la función para añadir o actualizar el evento
+        add_or_update_event(proximo_partido)
+    else:
+        print("No se encontró información del próximo partido.")
 
-print("Todos los eventos han sido procesados.")
+# Llamada de ejemplo para actualizar el próximo partido
+actualizar_proximo_partido()
