@@ -22,8 +22,8 @@ service = build('calendar', 'v3', credentials=credentials)
 calendar_id = '482b569e5fd8fd1c9d2d19b3e2d06b4587d8f3490af5cf17d7b2a289e0f4516f@group.calendar.google.com'
 
 # Configuración de la API de Google Custom Search
-API_KEY = 'TU_API_KEY'
-SEARCH_ENGINE_ID = 'TU_ID_DE_MOTOR_DE_BÚSQUEDA'
+API_KEY = os.getenv('API_KEY')
+SEARCH_ENGINE_ID = os.getenv('SEARCH_ENGINE_ID')
 
 def consultar_proximo_partido():
     try:
