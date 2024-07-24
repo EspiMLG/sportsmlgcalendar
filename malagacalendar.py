@@ -25,6 +25,9 @@ calendar_id = '482b569e5fd8fd1c9d2d19b3e2d06b4587d8f3490af5cf17d7b2a289e0f4516f@
 API_KEY = os.getenv('API_KEY')
 SEARCH_ENGINE_ID = os.getenv('SEARCH_ENGINE_ID')
 
+print(f"API_KEY: {API_KEY}")
+print(f"SEARCH_ENGINE_ID: {SEARCH_ENGINE_ID}")
+
 def consultar_proximo_partido():
     try:
         service = build("customsearch", "v1", developerKey=API_KEY)
