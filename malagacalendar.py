@@ -9,7 +9,7 @@ from googleapiclient.discovery import build
 # Credenciales desde las variables de entorno
 credentials_json = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
 
-# Credenciales de servicio para acceder a la API
+# Credenciales de servicio para acceder a la API de Google Calendar
 credentials = Credentials.from_service_account_info(
     json.loads(credentials_json),
     scopes=['https://www.googleapis.com/auth/calendar']
@@ -21,28 +21,49 @@ service = build('calendar', 'v3', credentials=credentials)
 # ID del calendario donde añadir los eventos
 calendar_id = '482b569e5fd8fd1c9d2d19b3e2d06b4587d8f3490af5cf17d7b2a289e0f4516f@group.calendar.google.com'
 
+# Configuración de la API de Google Custom Search
+API_KEY = 'TU_API_KEY'
+SEARCH_ENGINE_ID = 'TU_ID_DE_MOTOR_DE_BÚSQUEDA'
+
 def consultar_proximo_partido():
-    url = "https://www.google.com/search?q=próximo+partido+del+Málaga+CF"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
-    }
-    
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    
-    # Aquí asumimos que los datos del próximo partido están en un formato específico
-    # Esto puede necesitar ajustes dependiendo del formato real de la página web
     try:
-        match_info = soup.find('div', class_='BNeawe iBp4i AP7Wnd').text
-        date_time = soup.find('div', class_='BNeawe tAd8D AP7Wnd').text
-        teams = match_info.split(' - ')
+        service = build("customsearch", "v1", developerKey=API_KEY)
+        res = service.cse().list(q="próximo partido del Málaga CF", cx=SEARCH_ENGINE_ID).execute()
         
+        # Verifica el contenido de los resultados
+        print("Resultados de la búsqueda:", res)
+        
+        # Extrae el primer resultado
+        items = res.get("items", [])
+        if not items:
+            print("No se encontraron resultados.")
+            return None
+
+        # Usamos el snippet para obtener información
+        snippet = items[0].get("snippet", "")
+        print("Snippet del resultado:", snippet)
+
+        # Aquí se procesa el snippet para extraer la información del partido
+        # Este es un ejemplo básico y puede necesitar ajustes dependiendo del formato
+        lines = snippet.split("\n")
+        if len(lines) >= 2:
+            match_info = lines[0]
+            date_time = lines[1]
+        else:
+            print("No se encontró información estructurada en el snippet.")
+            return None
+
+        teams = match_info.split(' - ')
+        if len(teams) < 2:
+            print("Formato inesperado en la información del partido.")
+            return None
+
         oponente = teams[1] if "Málaga CF" in teams[0] else teams[0]
         fecha_hora_inicio = date_time.split(' ')[0] + "T" + date_time.split(' ')[1] + ":00"
         fecha_hora_fin = fecha_hora_inicio.split(':')[0] + ":00:00"  # Asumimos una duración de 2 horas
         localidad = "local" if "Málaga CF" in teams[0] else "visitante"
         descripcion = "Próximo partido del Málaga CF"
-        
+
         return {
             "oponente": oponente,
             "fecha_hora_inicio": fecha_hora_inicio,
