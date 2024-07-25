@@ -21,61 +21,49 @@ service = build('calendar', 'v3', credentials=credentials)
 # ID del calendario donde añadir los eventos
 calendar_id = '482b569e5fd8fd1c9d2d19b3e2d06b4587d8f3490af5cf17d7b2a289e0f4516f@group.calendar.google.com'
 
-# Configuración de la API de Google Custom Search
-API_KEY = os.getenv('API_KEY')
-SEARCH_ENGINE_ID = os.getenv('SEARCH_ENGINE_ID')
-
-print(f"API_KEY: {API_KEY}")
-print(f"SEARCH_ENGINE_ID: {SEARCH_ENGINE_ID}")
-
-def consultar_proximo_partido():
+def obtener_proximos_partidos():
+    url = "https://www.laliga.com/clubes/malaga-cf/proximos-partidos"
     try:
-        service = build("customsearch", "v1", developerKey=API_KEY)
-        res = service.cse().list(q="próximo partido del Málaga CF", cx=SEARCH_ENGINE_ID).execute()
+        # Realizar la solicitud HTTP
+        response = requests.get(url)
+        response.raise_for_status()
         
-        # Verifica el contenido de los resultados
-        print("Resultados de la búsqueda:", res)
+        # Parsear el contenido HTML
+        soup = BeautifulSoup(response.content, 'html.parser')
         
-        # Extrae el primer resultado
-        items = res.get("items", [])
-        if not items:
-            print("No se encontraron resultados.")
-            return None
+        # Encontrar los elementos que contienen la información de los partidos
+        partidos = soup.find_all('div', class_='match-info')
 
-        # Usamos el snippet para obtener información
-        snippet = items[0].get("snippet", "")
-        print("Snippet del resultado:", snippet)
+        eventos = []
+        for partido in partidos:
+            equipos = partido.find('span', class_='team-names').get_text(strip=True)
+            fecha = partido.find('div', class_='match-date').get_text(strip=True)
+            hora = partido.find('div', class_='match-hour').get_text(strip=True)
 
-        # Aquí se procesa el snippet para extraer la información del partido
-        # Este es un ejemplo básico y puede necesitar ajustes dependiendo del formato
-        lines = snippet.split("\n")
-        if len(lines) >= 2:
-            match_info = lines[0]
-            date_time = lines[1]
-        else:
-            print("No se encontró información estructurada en el snippet.")
-            return None
+            # Procesar la información para obtener detalles específicos
+            equipos_list = equipos.split(' vs ')
+            if len(equipos_list) == 2:
+                equipo_local, equipo_visitante = equipos_list
+            else:
+                continue
 
-        teams = match_info.split(' - ')
-        if len(teams) < 2:
-            print("Formato inesperado en la información del partido.")
-            return None
+            fecha_hora_inicio = f"{fecha}T{hora}:00"
+            fecha_hora_fin = f"{fecha}T{int(hora.split(':')[0]) + 2:02}:00:00"  # Asumimos 2 horas de duración
 
-        oponente = teams[1] if "Málaga CF" in teams[0] else teams[0]
-        fecha_hora_inicio = date_time.split(' ')[0] + "T" + date_time.split(' ')[1] + ":00"
-        fecha_hora_fin = fecha_hora_inicio.split(':')[0] + ":00:00"  # Asumimos una duración de 2 horas
-        localidad = "local" if "Málaga CF" in teams[0] else "visitante"
-        descripcion = "Próximo partido del Málaga CF"
+            localidad = "local" if "Málaga CF" in equipo_local else "visitante"
+            descripcion = "Próximo partido del Málaga CF"
 
-        return {
-            "oponente": oponente,
-            "fecha_hora_inicio": fecha_hora_inicio,
-            "fecha_hora_fin": fecha_hora_fin,
-            "localidad": localidad,
-            "descripcion": descripcion
-        }
+            eventos.append({
+                "oponente": equipo_visitante if "Málaga CF" in equipo_local else equipo_local,
+                "fecha_hora_inicio": fecha_hora_inicio,
+                "fecha_hora_fin": fecha_hora_fin,
+                "localidad": localidad,
+                "descripcion": descripcion
+            })
+
+        return eventos
     except Exception as e:
-        print(f"No se pudo extraer la información del próximo partido: {e}")
+        print(f"No se pudo extraer la información de los partidos: {e}")
         return None
 
 def add_or_update_event(event_details):
@@ -96,7 +84,7 @@ def add_or_update_event(event_details):
         # Comparar el evento existente con el nuevo evento
         same_start = existing_event['start']['dateTime'] == event_details['fecha_hora_inicio']
         same_end = existing_event['end']['dateTime'] == event_details['fecha_hora_fin']
-        same_location = existing_event['location'] == event_details['location']
+        same_location = existing_event.get('location', '') == ('Estadio La Rosaleda' if event_details['localidad'] == 'local' else 'Estadio Visitante')
         same_description = existing_event['description'] == event_details['descripcion']
 
         if same_start and same_end and same_location and same_description:
@@ -119,10 +107,6 @@ def add_or_update_event(event_details):
             }
             updated_event = service.events().update(calendarId=calendar_id, eventId=event_id, body=event).execute()
             print(f"Evento actualizado: {updated_event['summary']} (ID: {updated_event['id']})")
-            print(f"  - same_start: {same_start}, same_end: {same_end}, same_location: {same_location}, same_description: {same_description}")
-            print(f"  - existing_event: {existing_event}")
-            print(f"  - new_event: {event}")
-            time.sleep(1)  # Espera de 1 segundo para evitar problemas de tasa de solicitudes
     else:
         # Si no hay eventos existentes, añadir uno nuevo
         event = {
@@ -142,17 +126,18 @@ def add_or_update_event(event_details):
         print(f"Evento creado: {created_event['summary']} (ID: {created_event['id']})")
         time.sleep(1)  # Espera de 1 segundo para evitar problemas de tasa de solicitudes
 
-def actualizar_proximo_partido():
-    # Consultar el próximo partido del Málaga CF
-    proximo_partido = consultar_proximo_partido()
+def actualizar_proximos_partidos():
+    # Obtener la lista de próximos partidos
+    proximos_partidos = obtener_proximos_partidos()
     
-    if proximo_partido:
-        print(f"Próximo partido encontrado: {proximo_partido}")
+    if proximos_partidos:
+        print(f"Próximos partidos encontrados: {proximos_partidos}")
         
-        # Llamar a la función para añadir o actualizar el evento
-        add_or_update_event(proximo_partido)
+        # Añadir o actualizar eventos en el calendario para cada partido
+        for partido in proximos_partidos:
+            add_or_update_event(partido)
     else:
-        print("No se encontró información del próximo partido.")
+        print("No se encontró información de los próximos partidos.")
 
-# Llamada de ejemplo para actualizar el próximo partido
-actualizar_proximo_partido()
+# Llamada de ejemplo para actualizar los próximos partidos
+actualizar_proximos_partidos()
