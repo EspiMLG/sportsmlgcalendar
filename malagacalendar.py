@@ -5,6 +5,10 @@ import requests
 from bs4 import BeautifulSoup
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
 
 # Credenciales desde las variables de entorno
 credentials_json = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
@@ -22,10 +26,16 @@ service = build('calendar', 'v3', credentials=credentials)
 calendar_id = '482b569e5fd8fd1c9d2d19b3e2d06b4587d8f3490af5cf17d7b2a289e0f4516f@group.calendar.google.com'
 
 def obtener_proximos_partidos():
-    url = "https://www.laliga.com/clubes/malaga-cf/proximos-partidos"
+    options = Options()
+    options.headless = True
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    driver.get("https://www.malagacf.com/partidos")
     try:
         # Realizar la solicitud HTTP
-        response = requests.get(url)
+        response = driver.get(url)
         response.raise_for_status()
         
         # Parsear el contenido HTML
@@ -36,16 +46,11 @@ def obtener_proximos_partidos():
 
         eventos = []
         for partido in partidos:
-            equipos = partido.find('span', class_='team-names').get_text(strip=True)
-            fecha = partido.find('div', class_='match-date').get_text(strip=True)
-            hora = partido.find('div', class_='match-hour').get_text(strip=True)
-
-            # Procesar la información para obtener detalles específicos
-            equipos_list = equipos.split(' vs ')
-            if len(equipos_list) == 2:
-                equipo_local, equipo_visitante = equipos_list
-            else:
-                continue
+            equipos = partido.find_all('span', class_='MkFootballMatchCard__teamName')
+            equipo_local = equipos[0].text.strip() if len(equipos) > 0 else 'Desconocido'
+            equipo_visitante = equipos[1].text.strip() if len(equipos) > 1 else 'Desconocido'
+            hora = partido.find('div', class_='MkFootballMatchCard__time').text.strip() if partido.find('div', class_='MkFootballMatchCard__time') else 'Desconocido'
+            fecha = partido.find('div', class_='MkFootballMatchCard__date').text.strip() if partido.find('div', class_='MkFootballMatchCard__date') else 'Desconocido'
 
             fecha_hora_inicio = f"{fecha}T{hora}:00"
             fecha_hora_fin = f"{fecha}T{int(hora.split(':')[0]) + 2:02}:00:00"  # Asumimos 2 horas de duración
