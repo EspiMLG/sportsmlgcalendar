@@ -26,11 +26,6 @@ service = build('calendar', 'v3', credentials=credentials)
 # ID del calendario donde añadir los eventos
 calendar_id = '482b569e5fd8fd1c9d2d19b3e2d06b4587d8f3490af5cf17d7b2a289e0f4516f@group.calendar.google.com'
 
-months_spa_to_eng = {
-    'ene': 'Jan', 'feb': 'Feb', 'mar': 'Mar', 'abr': 'Apr', 'may': 'May', 'jun': 'Jun',
-    'jul': 'Jul', 'ago': 'Aug', 'sep': 'Sep', 'oct': 'Oct', 'nov': 'Nov', 'dic': 'Dec'
-}
-
 def obtener_proximos_partidos():
     options = Options()
     options.headless = True
@@ -60,14 +55,12 @@ def obtener_proximos_partidos():
             estadio = partido.find('div', class_='MkFootballMatchCard__venue').text.strip() if partido.find('div', class_='MkFootballMatchCard__venue') else 'Estadio Visitante'
 
             if hora=='-- : --' : hora = '12 : 00'
-            dia, mes_esp, ano = fecha.split()
-            mes_ing = months_spa_to_eng[mes_esp.lower()]
 
             hora_inicio = f"{hora}:00"
             hora_fin = f"{int(hora.split(':')[0]) + 2:02}:00"  # Asumimos 2 horas de duración
             
-            fecha_hora_inicio = datetime.datetime.strptime(f'{dia} {mes_ing} {ano}', '%d %b %Y').strftime("%Y-%m-%dT"+hora)
-            fecha_hora_fin = (datetime.datetime.strptime(f'{dia} {mes_ing} {ano}', '%d %b %Y') + datetime.timedelta(hours=2)).strftime("%Y-%m-%dT"+hora_fin)
+            fecha_hora_inicio = datetime.datetime.strptime(fecha, '%d %b %Y').strftime("%Y-%m-%dT"+hora)
+            fecha_hora_fin = (datetime.datetime.strptime(fecha, '%d %b %Y') + datetime.timedelta(hours=2)).strftime("%Y-%m-%dT"+hora_fin)
 
             localidad = "local" if "Málaga CF" in equipo_local else "visitante"
             descripcion = "Próximo partido del Málaga CF" 
