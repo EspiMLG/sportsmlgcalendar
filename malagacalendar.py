@@ -35,14 +35,14 @@ def obtener_proximos_partidos():
     
     try:
         # Realizar la solicitud HTTP
-        response = driver.get("https://www.malagacf.com/partidos")
-        response.raise_for_status()
+        driver.get("https://www.malagacf.com/partidos")
         
-        # Parsear el contenido HTML
-        soup = BeautifulSoup(response.content, 'html.parser')
+        # Extraer el contenido de la página después de que el JavaScript se haya ejecutado
+        html = driver.page_source
+        soup = BeautifulSoup(html, 'html.parser')
         
         # Encontrar los elementos que contienen la información de los partidos
-        partidos = soup.find_all('div', class_='match-info')
+        partidos = soup.find_all('div', class_='MkFootballMatchCard')
 
         eventos = []
         for partido in partidos:
