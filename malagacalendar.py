@@ -46,12 +46,17 @@ def obtener_proximos_partidos():
 
         eventos = []
         for partido in partidos:
+            printf(partido)
             equipos = partido.find_all('span', class_='MkFootballMatchCard__teamName')
             equipo_local = equipos[0].text.strip() if len(equipos) > 0 else 'Desconocido'
+            printf(equipo_local)
             equipo_visitante = equipos[1].text.strip() if len(equipos) > 1 else 'Desconocido'
+            printf(equipo_visitante)
             hora = partido.find('div', class_='MkFootballMatchCard__time').text.strip() if partido.find('div', class_='MkFootballMatchCard__time') else 'Desconocido'
+            printf(hora)
             fecha = partido.find('div', class_='MkFootballMatchCard__date').text.strip() if partido.find('div', class_='MkFootballMatchCard__date') else 'Desconocido'
-
+            printf(fecha)
+            
             fecha_hora_inicio = f"{fecha}T{hora}:00"
             fecha_hora_fin = f"{fecha}T{int(hora.split(':')[0]) + 2:02}:00:00"  # Asumimos 2 horas de duración
 
