@@ -32,10 +32,10 @@ def obtener_proximos_partidos():
     options.add_argument("--no-sandbox")
     
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    driver.get("https://www.malagacf.com/partidos")
+    
     try:
         # Realizar la solicitud HTTP
-        response = driver.get(url)
+        response = driver.get("https://www.malagacf.com/partidos")
         response.raise_for_status()
         
         # Parsear el contenido HTML
