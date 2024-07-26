@@ -49,14 +49,17 @@ def obtener_proximos_partidos():
             equipos = partido.find_all('span', class_='MkFootballMatchCard__teamName')
             equipo_local = equipos[0].text.strip() if len(equipos) > 0 else 'Desconocido'
             equipo_visitante = equipos[1].text.strip() if len(equipos) > 1 else 'Desconocido'
-            hora = partido.find('div', class_='MkFootballMatchCard__time').text.strip() if partido.find('div', class_='MkFootballMatchCard__time') else 'Desconocido'
+            hora = partido.find('div', class_='MkFootballMatchCard__time').text.strip() if partido.find('div', class_='MkFootballMatchCard__time') else '12:00'
             fecha = partido.find('div', class_='MkFootballMatchCard__date').text.strip() if partido.find('div', class_='MkFootballMatchCard__date') else 'Desconocido'
             estadio = partido.find('div', class_='MkFootballMatchCard__venue').text.strip() if partido.find('div', class_='MkFootballMatchCard__venue') else 'Estadio Visitante'
 
             if hora=='-- : --' : hora = '12 : 00'
 
-            fecha_hora_inicio = datetime.datetime.strptime(fecha, "%Y-%m-%d").strftime(hora)
-            fecha_hora_fin = (datetime.datetime.strptime(fecha, "%Y-%m-%d") + datetime.timedelta(hours=2)).strftime(hora)
+            hora_inicio = f"{hora}:00"
+            hora_fin = f"{int(hora.split(':')[0]) + 2:02}:00"  # Asumimos 2 horas de duración
+            
+            fecha_hora_inicio = datetime.datetime.strptime(fecha, "%Y-%m-%d").strftime("%Y-%m-%dT"+hora)
+            fecha_hora_fin = (datetime.datetime.strptime(fecha, "%Y-%m-%d") + datetime.timedelta(hours=2)).strftime("%Y-%m-%dT"+hora_fin)
 
             localidad = "local" if "Málaga CF" in equipo_local else "visitante"
             descripcion = "Próximo partido del Málaga CF" 
@@ -78,7 +81,7 @@ def obtener_proximos_partidos():
 def add_or_update_event(event_details):
     summary_local = f"Málaga CF vs {event_details['oponente']}"
     summary_visitante = f"{event_details['oponente']} vs Málaga CF"
-
+    
     # Consultar si hay eventos existentes por resumen (nombre del partido)
     events_local = service.events().list(calendarId=calendar_id, q=summary_local).execute().get('items', [])
     events_visitante = service.events().list(calendarId=calendar_id, q=summary_visitante).execute().get('items', [])
