@@ -51,11 +51,12 @@ def obtener_proximos_partidos():
             equipo_visitante = equipos[1].text.strip() if len(equipos) > 1 else 'Desconocido'
             hora = partido.find('div', class_='MkFootballMatchCard__time').text.strip() if partido.find('div', class_='MkFootballMatchCard__time') else 'Desconocido'
             fecha = partido.find('div', class_='MkFootballMatchCard__date').text.strip() if partido.find('div', class_='MkFootballMatchCard__date') else 'Desconocido'
-            
+            estadio = partido.find('div', class_='MkFootballMatchCard__venue').text.strip() if partido.find('div', class_='MkFootballMatchCard__venue') else 'Estadio Visitante'
+
             if hora=='-- : --' : hora = '12 : 00'
 
-            fecha_hora_inicio = f"{fecha}T{hora}:00"
-            fecha_hora_fin = f"{fecha}T{int(hora.split(':')[0]) + 2:02}:00:00"  # Asumimos 2 horas de duración
+            fecha_hora_inicio = datetime.datetime.strptime(fecha, "%Y-%m-%d").strftime(hora)
+            fecha_hora_fin = (datetime.datetime.strptime(fecha, "%Y-%m-%d") + datetime.timedelta(hours=2)).strftime(hora)
 
             localidad = "local" if "Málaga CF" in equipo_local else "visitante"
             descripcion = "Próximo partido del Málaga CF" 
@@ -65,7 +66,8 @@ def obtener_proximos_partidos():
                 "fecha_hora_inicio": fecha_hora_inicio,
                 "fecha_hora_fin": fecha_hora_fin,
                 "localidad": localidad,
-                "descripcion": descripcion
+                "descripcion": descripcion,
+                "estadio": estadio
             })
 
         return eventos
@@ -91,7 +93,7 @@ def add_or_update_event(event_details):
         # Comparar el evento existente con el nuevo evento
         same_start = existing_event['start']['dateTime'] == event_details['fecha_hora_inicio']
         same_end = existing_event['end']['dateTime'] == event_details['fecha_hora_fin']
-        same_location = existing_event.get('location', '') == ('Estadio La Rosaleda' if event_details['localidad'] == 'local' else 'Estadio Visitante')
+        same_location = existing_event.get('location', '') == ('Estadio La Rosaleda' if event_details['localidad'] == 'local' else event_details['estadio'])
         same_description = existing_event['description'] == event_details['descripcion']
 
         if same_start and same_end and same_location and same_description:
