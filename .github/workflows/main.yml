@@ -41,5 +41,7 @@ jobs:
         GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
         API_KEY: ${{ secrets.API_KEY }}
         SEARCH_ENGINE_ID: ${{ secrets.SEARCH_ENGINE_ID }}
-      run: python malagacalendar.py
+      run: |
+        sudo Xvfb :99 -ac &
+        python malagacalendar.py
 
