@@ -26,6 +26,22 @@ service = build('calendar', 'v3', credentials=credentials)
 # ID del calendario donde añadir los eventos
 calendar_id = '482b569e5fd8fd1c9d2d19b3e2d06b4587d8f3490af5cf17d7b2a289e0f4516f@group.calendar.google.com'
 
+# Mapeo de meses en español a inglés
+meses = {
+    'ene': 'Jan', 'feb': 'Feb', 'mar': 'Mar', 'abr': 'Apr', 'may': 'May', 'jun': 'Jun',
+    'jul': 'Jul', 'ago': 'Aug', 'sep': 'Sep', 'oct': 'Oct', 'nov': 'Nov', 'dic': 'Dec'
+}
+
+def traducir_fecha(fecha_str):
+    """Traduce la fecha de español a inglés."""
+    partes = fecha_str.split()
+    if len(partes) == 3:
+        dia, mes_es, año = partes
+        mes_en = meses.get(mes_es.lower())
+        if mes_en:
+            return f"{dia} {mes_en} {año}"
+    return None
+
 def obtener_proximos_partidos():
     options = Options()
     options.headless = True
@@ -35,14 +51,9 @@ def obtener_proximos_partidos():
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     
     try:
-        # Realizar la solicitud HTTP
         driver.get("https://www.malagacf.com/partidos")
-        
-        # Extraer el contenido de la página después de que el JavaScript se haya ejecutado
         html = driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
-        
-        # Encontrar los elementos que contienen la información de los partidos
         partidos = soup.find_all('article', class_='MkFootballMatchCard')
 
         eventos = []
@@ -57,16 +68,20 @@ def obtener_proximos_partidos():
             if hora == '-- : --':
                 hora = '12:00'
             
-            # Ajusta el formato de fecha y hora para que coincida con el esperado
+            fecha_traducida = traducir_fecha(fecha)
+            if not fecha_traducida:
+                print(f"Error al procesar la fecha: {fecha}")
+                continue
+
             try:
-                fecha_hora_inicio = datetime.datetime.strptime(f"{fecha} {hora}", '%d %b %Y %H:%M').isoformat()
-                fecha_hora_fin = (datetime.datetime.strptime(f"{fecha} {hora}", '%d %b %Y %H:%M') + datetime.timedelta(hours=2)).isoformat()
+                fecha_hora_inicio = datetime.datetime.strptime(f"{fecha_traducida} {hora}", '%d %b %Y %H:%M').isoformat()
+                fecha_hora_fin = (datetime.datetime.strptime(f"{fecha_traducida} {hora}", '%d %b %Y %H:%M') + datetime.timedelta(hours=2)).isoformat()
             except ValueError:
                 print(f"Error al procesar la fecha y hora para el partido: {equipo_local} vs {equipo_visitante} en {fecha} {hora}")
                 continue
 
             localidad = "local" if "Málaga CF" in equipo_local else "visitante"
-            descripcion = "Próximo partido del Málaga CF" 
+            descripcion = "Próximo partido del Málaga CF"
 
             eventos.append({
                 "oponente": equipo_visitante if "Málaga CF" in equipo_local else equipo_local,
