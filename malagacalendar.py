@@ -58,12 +58,12 @@ def obtener_proximos_partidos():
             equipos = partido.find_all('span', class_='MkFootballMatchCard__teamName')
             equipo_local = equipos[0].text.strip() if len(equipos) > 0 else 'Desconocido'
             equipo_visitante = equipos[1].text.strip() if len(equipos) > 1 else 'Desconocido'
-            hora = partido.find('div', class_='MkFootballMatchCard__time').text.strip() if partido.find('div', class_='MkFootballMatchCard__time') else '12:00'
+            hora = partido.find('div', class_='MkFootballMatchCard__time').text.strip() if partido.find('div', class_='MkFootballMatchCard__time') else '10:00'
             fecha = partido.find('div', class_='MkFootballMatchCard__date').text.strip() if partido.find('div', class_='MkFootballMatchCard__date') else 'Desconocido'
             estadio = partido.find('div', class_='MkFootballMatchCard__venue').text.strip() if partido.find('div', class_='MkFootballMatchCard__venue') else 'Estadio Visitante'
 
             if hora == '-- : --':
-                hora = '12:00'
+                hora = '10:00'
             
             fecha_traducida = traducir_fecha(fecha)
             if not fecha_traducida:
