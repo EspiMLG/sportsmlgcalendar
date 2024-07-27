@@ -32,15 +32,13 @@ jobs:
         unzip chromedriver_linux64.zip -d /usr/local/bin/
         rm chromedriver_linux64.zip
         pip install -r requirements.txt
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
 
     - name: Run update script
       env:
         GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
         API_KEY: ${{ secrets.API_KEY }}
         SEARCH_ENGINE_ID: ${{ secrets.SEARCH_ENGINE_ID }}
+        DISPLAY: :99
       run: |
         sudo Xvfb :99 -ac &
         python malagacalendar.py
