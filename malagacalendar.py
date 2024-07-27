@@ -119,7 +119,7 @@ def add_or_update_event(event_details):
         same_start = existing_event['start']['dateTime'] == event_details['fecha_hora_inicio']
         same_end = existing_event['end']['dateTime'] == event_details['fecha_hora_fin']
         same_location = existing_event.get('location', '') == ('Estadio La Rosaleda' if event_details['localidad'] == 'local' else event_details['estadio'])
-        same_description = existing_event['description'] == event_details['descripcion']
+        same_description = existing_event.get('description', '') == event_details['descripcion']
 
         if same_start and same_end and same_location and same_description:
             print(f"El evento {event_details['oponente']} ya existe y coincide con los datos más recientes. No se modifica.")
@@ -128,7 +128,7 @@ def add_or_update_event(event_details):
             event_id = existing_event['id']
             event = {
                 'summary': summary_local if event_details['localidad'] == 'local' else summary_visitante,
-                'location': 'Estadio La Rosaleda' if event_details['localidad'] == 'local' else 'Estadio Visitante',
+                'location': 'Estadio La Rosaleda' if event_details['localidad'] == 'local' else event_details['estadio'],
                 'description': event_details.get('descripcion', ''),
                 'start': {
                     'dateTime': event_details['fecha_hora_inicio'],
@@ -145,7 +145,7 @@ def add_or_update_event(event_details):
         # Si no hay eventos existentes, añadir uno nuevo
         event = {
             'summary': summary_local if event_details['localidad'] == 'local' else summary_visitante,
-            'location': 'Estadio La Rosaleda' if event_details['localidad'] == 'local' else 'Estadio Visitante',
+            'location': 'Estadio La Rosaleda' if event_details['localidad'] == 'local' else event_details['estadio'],
             'description': event_details.get('descripcion', ''),
             'start': {
                 'dateTime': event_details['fecha_hora_inicio'],
