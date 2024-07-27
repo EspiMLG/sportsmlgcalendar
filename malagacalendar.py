@@ -2,6 +2,7 @@ import os
 import json
 import time
 import datetime
+from datetime import timezone
 import requests
 from bs4 import BeautifulSoup
 from google.oauth2.service_account import Credentials
@@ -26,20 +27,16 @@ service = build('calendar', 'v3', credentials=credentials)
 # ID del calendario donde añadir los eventos
 calendar_id = '482b569e5fd8fd1c9d2d19b3e2d06b4587d8f3490af5cf17d7b2a289e0f4516f@group.calendar.google.com'
 
-# Mapeo de meses en español a inglés
-meses = {
-    'ene': 'Jan', 'feb': 'Feb', 'mar': 'Mar', 'abr': 'Apr', 'may': 'May', 'jun': 'Jun',
-    'jul': 'Jul', 'ago': 'Aug', 'sep': 'Sep', 'oct': 'Oct', 'nov': 'Nov', 'dic': 'Dec'
-}
-
-def traducir_fecha(fecha_str):
-    """Traduce la fecha de español a inglés."""
-    partes = fecha_str.split()
-    if len(partes) == 3:
-        dia, mes_es, año = partes
-        mes_en = meses.get(mes_es.lower())
-        if mes_en:
-            return f"{dia} {mes_en} {año}"
+# Función para traducir el mes del español al inglés
+def traducir_fecha(fecha_es):
+    traduccion = {
+        'ene': 'Jan', 'feb': 'Feb', 'mar': 'Mar', 'abr': 'Apr',
+        'may': 'May', 'jun': 'Jun', 'jul': 'Jul', 'ago': 'Aug',
+        'sep': 'Sep', 'oct': 'Oct', 'nov': 'Nov', 'dic': 'Dec'
+    }
+    for mes_es, mes_en in traduccion.items():
+        if mes_es in fecha_es:
+            return fecha_es.replace(mes_es, mes_en)
     return None
 
 def obtener_proximos_partidos():
@@ -74,8 +71,12 @@ def obtener_proximos_partidos():
                 continue
 
             try:
-                fecha_hora_inicio = datetime.datetime.strptime(f"{fecha_traducida} {hora}", '%d %b %Y %H:%M').isoformat()
-                fecha_hora_fin = (datetime.datetime.strptime(f"{fecha_traducida} {hora}", '%d %b %Y %H:%M') + datetime.timedelta(hours=2)).isoformat()
+                # Parsea la fecha y hora local
+                fecha_hora_inicio_local = datetime.datetime.strptime(f"{fecha_traducida} {hora}", '%d %b %Y %H:%M')
+                
+                # Asegura que se interprete como hora local (Europe/Madrid)
+                fecha_hora_inicio = fecha_hora_inicio_local.replace(tzinfo=timezone.utc).isoformat()
+                fecha_hora_fin = (fecha_hora_inicio_local + datetime.timedelta(hours=2)).replace(tzinfo=timezone.utc).isoformat()
             except ValueError:
                 print(f"Error al procesar la fecha y hora para el partido: {equipo_local} vs {equipo_visitante} en {fecha} {hora}")
                 continue
@@ -155,7 +156,6 @@ def add_or_update_event(event_details):
                 'timeZone': 'Europe/Madrid',
             },
         }
-        print("Event data:", event)  # Imprime el objeto de evento
         created_event = service.events().insert(calendarId=calendar_id, body=event).execute()
         print(f"Evento creado: {created_event['summary']} (ID: {created_event['id']})")
         time.sleep(1)  # Espera de 1 segundo para evitar problemas de tasa de solicitudes
