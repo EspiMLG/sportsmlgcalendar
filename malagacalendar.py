@@ -56,8 +56,8 @@ def obtener_proximos_partidos():
 
             if hora=='-- : --' : hora = '12 : 00'
 
-            hora_inicio = f"{hora}:00"
-            hora_fin = f"{int(hora.split(':')[0]) + 2:02}:00"  # Asumimos 2 horas de duración
+            fecha_hora_inicio = datetime.datetime.strptime(f"{fecha} {hora}", '%d %b %Y %H:%M').isoformat()
+            fecha_hora_fin = (datetime.datetime.strptime(f"{fecha} {hora}", '%d %b %Y %H:%M') + datetime.timedelta(hours=2)).isoformat()
             
             fecha_hora_inicio = f"{fecha}T{hora}:00"
             fecha_hora_fin = f"{fecha}T{int(hora.split(':')[0]) + 2:02}:00:00"  # Asumimos 2 horas de duración
