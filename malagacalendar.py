@@ -54,13 +54,16 @@ def obtener_proximos_partidos():
             fecha = partido.find('div', class_='MkFootballMatchCard__date').text.strip() if partido.find('div', class_='MkFootballMatchCard__date') else 'Desconocido'
             estadio = partido.find('div', class_='MkFootballMatchCard__venue').text.strip() if partido.find('div', class_='MkFootballMatchCard__venue') else 'Estadio Visitante'
 
-            if hora=='-- : --' : hora = '12 : 00'
-
-            fecha_hora_inicio = datetime.datetime.strptime(f"{fecha} {hora}", '%d %b %Y %H:%M').isoformat()
-            fecha_hora_fin = (datetime.datetime.strptime(f"{fecha} {hora}", '%d %b %Y %H:%M') + datetime.timedelta(hours=2)).isoformat()
+            if hora == '-- : --':
+                hora = '12:00'
             
-            fecha_hora_inicio = f"{fecha}T{hora}:00"
-            fecha_hora_fin = f"{fecha}T{int(hora.split(':')[0]) + 2:02}:00:00"  # Asumimos 2 horas de duración
+            # Ajusta el formato de fecha y hora para que coincida con el esperado
+            try:
+                fecha_hora_inicio = datetime.datetime.strptime(f"{fecha} {hora}", '%d %b %Y %H:%M').isoformat()
+                fecha_hora_fin = (datetime.datetime.strptime(f"{fecha} {hora}", '%d %b %Y %H:%M') + datetime.timedelta(hours=2)).isoformat()
+            except ValueError:
+                print(f"Error al procesar la fecha y hora para el partido: {equipo_local} vs {equipo_visitante} en {fecha} {hora}")
+                continue
 
             localidad = "local" if "Málaga CF" in equipo_local else "visitante"
             descripcion = "Próximo partido del Málaga CF" 
@@ -78,6 +81,8 @@ def obtener_proximos_partidos():
     except Exception as e:
         print(f"No se pudo extraer la información de los partidos: {e}")
         return None
+    finally:
+        driver.quit()
 
 def add_or_update_event(event_details):
     summary_local = f"Málaga CF vs {event_details['oponente']}"
