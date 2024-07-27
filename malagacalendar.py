@@ -59,8 +59,8 @@ def obtener_proximos_partidos():
             hora_inicio = f"{hora}:00"
             hora_fin = f"{int(hora.split(':')[0]) + 2:02}:00"  # Asumimos 2 horas de duración
             
-            fecha_hora_inicio = datetime.datetime.strptime(fecha, '%d %b %Y').strftime("%Y-%m-%dT"+hora)
-            fecha_hora_fin = (datetime.datetime.strptime(fecha, '%d %b %Y') + datetime.timedelta(hours=2)).strftime("%Y-%m-%dT"+hora_fin)
+            fecha_hora_inicio = f"{fecha}T{hora}:00"
+            fecha_hora_fin = f"{fecha}T{int(hora.split(':')[0]) + 2:02}:00:00"  # Asumimos 2 horas de duración
 
             localidad = "local" if "Málaga CF" in equipo_local else "visitante"
             descripcion = "Próximo partido del Málaga CF" 
