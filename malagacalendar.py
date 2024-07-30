@@ -11,6 +11,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
+from datetime import datetime
+import pytz
 
 # Credenciales desde las variables de entorno
 credentials_json = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
@@ -111,16 +113,16 @@ def add_or_update_event(event_details):
     existing_event = None
     if events_local:
         for event in events_local:
-            # Convertir las fechas a objetos datetime para comparación precisa
-            start_time_existing = datetime.datetime.fromisoformat(event['start']['dateTime'].replace('Z', '+00:00'))
-            start_time_new = datetime.datetime.fromisoformat(event_details['fecha_hora_inicio'].replace('Z', '+00:00'))
+            # Convertir las fechas a objetos datetime y luego a UTC
+            start_time_existing = datetime.fromisoformat(event['start']['dateTime'].replace('Z', '+00:00')).astimezone(pytz.utc)
+            start_time_new = datetime.fromisoformat(event_details['fecha_hora_inicio']).astimezone(pytz.utc)
             if start_time_existing == start_time_new:
                 existing_event = event
                 break
     if not existing_event and events_visitante:
         for event in events_visitante:
-            start_time_existing = datetime.datetime.fromisoformat(event['start']['dateTime'].replace('Z', '+00:00'))
-            start_time_new = datetime.datetime.fromisoformat(event_details['fecha_hora_inicio'].replace('Z', '+00:00'))
+            start_time_existing = datetime.fromisoformat(event['start']['dateTime'].replace('Z', '+00:00')).astimezone(pytz.utc)
+            start_time_new = datetime.fromisoformat(event_details['fecha_hora_inicio']).astimezone(pytz.utc)
             if start_time_existing == start_time_new:
                 existing_event = event
                 break
