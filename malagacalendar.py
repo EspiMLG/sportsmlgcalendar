@@ -1,7 +1,7 @@
 import os
 import json
 import time
-import datetime
+import datetime as dt
 from datetime import timezone
 from datetime import datetime
 import requests
@@ -74,11 +74,11 @@ def obtener_proximos_partidos():
 
             try:
                 # Parsea la fecha y hora local
-                fecha_hora_inicio_local = datetime.datetime.strptime(f"{fecha_traducida} {hora}", '%d %b %Y %H:%M')
+                fecha_hora_inicio_local = dt.datetime.strptime(f"{fecha_traducida} {hora}", '%d %b %Y %H:%M')
                 
                 # Asegura que se interprete como hora local (Europe/Madrid)
                 fecha_hora_inicio = fecha_hora_inicio_local.replace(tzinfo=timezone.utc).isoformat()
-                fecha_hora_fin = (fecha_hora_inicio_local + datetime.timedelta(hours=2)).replace(tzinfo=timezone.utc).isoformat()
+                fecha_hora_fin = (fecha_hora_inicio_local + dt.timedelta(hours=2)).replace(tzinfo=timezone.utc).isoformat()
             except ValueError:
                 print(f"Error al procesar la fecha y hora para el partido: {equipo_local} vs {equipo_visitante} en {fecha} {hora}")
                 continue
