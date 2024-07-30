@@ -115,6 +115,11 @@ def add_or_update_event(event_details):
         existing_event = next((event for event in events_visitante if event['start']['dateTime'] == event_details['fecha_hora_inicio']), None)
 
     if existing_event:
+        # Mostrar comparativa de detalles de eventos
+        print("Comparando eventos:")
+        print(f"Evento existente: {existing_event}")
+        print(f"Nuevo evento: {event_details}")
+
         # Comparar el evento existente con el nuevo evento
         same_start = existing_event['start']['dateTime'] == event_details['fecha_hora_inicio']
         same_end = existing_event['end']['dateTime'] == event_details['fecha_hora_fin']
@@ -122,7 +127,7 @@ def add_or_update_event(event_details):
         same_description = existing_event.get('description', '') == event_details['descripcion']
 
         if same_start and same_end and same_location and same_description:
-            print(f"El evento {event_details['oponente']} ya existe y coincide con los datos más recientes. No se modifica.")
+            print(f"El evento {summary_local if event_details['localidad'] == 'local' else summary_visitante} ya existe y coincide con los datos más recientes. No se modifica.")
         else:
             # Si los datos no coinciden, actualizar el evento
             event_id = existing_event['id']
@@ -159,6 +164,7 @@ def add_or_update_event(event_details):
         created_event = service.events().insert(calendarId=calendar_id, body=event).execute()
         print(f"Evento creado: {created_event['summary']} (ID: {created_event['id']})")
         time.sleep(1)  # Espera de 1 segundo para evitar problemas de tasa de solicitudes
+
 
 def actualizar_proximos_partidos():
     # Obtener la lista de próximos partidos
