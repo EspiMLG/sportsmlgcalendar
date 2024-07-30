@@ -110,17 +110,27 @@ def add_or_update_event(event_details):
 
     existing_event = None
     if events_local:
-        existing_event = next((event for event in events_local if event['start']['dateTime'] == event_details['fecha_hora_inicio']), None)
-    elif events_visitante:
-        existing_event = next((event for event in events_visitante if event['start']['dateTime'] == event_details['fecha_hora_inicio']), None)
+        for event in events_local:
+            # Convertir las fechas a objetos datetime para comparación precisa
+            start_time_existing = datetime.datetime.fromisoformat(event['start']['dateTime'].replace('Z', '+00:00'))
+            start_time_new = datetime.datetime.fromisoformat(event_details['fecha_hora_inicio'].replace('Z', '+00:00'))
+            if start_time_existing == start_time_new:
+                existing_event = event
+                break
+    if not existing_event and events_visitante:
+        for event in events_visitante:
+            start_time_existing = datetime.datetime.fromisoformat(event['start']['dateTime'].replace('Z', '+00:00'))
+            start_time_new = datetime.datetime.fromisoformat(event_details['fecha_hora_inicio'].replace('Z', '+00:00'))
+            if start_time_existing == start_time_new:
+                existing_event = event
+                break
 
     if existing_event:
-        # Mostrar comparativa de detalles de eventos
         print("Comparando eventos:")
         print(f"Evento existente: {existing_event}")
         print(f"Nuevo evento: {event_details}")
 
-        # Comparar el evento existente con el nuevo evento
+        # Comparar los detalles del evento
         same_start = existing_event['start']['dateTime'] == event_details['fecha_hora_inicio']
         same_end = existing_event['end']['dateTime'] == event_details['fecha_hora_fin']
         same_location = existing_event.get('location', '') == ('Estadio La Rosaleda' if event_details['localidad'] == 'local' else event_details['estadio'])
@@ -129,7 +139,6 @@ def add_or_update_event(event_details):
         if same_start and same_end and same_location and same_description:
             print(f"El evento {summary_local if event_details['localidad'] == 'local' else summary_visitante} ya existe y coincide con los datos más recientes. No se modifica.")
         else:
-            # Si los datos no coinciden, actualizar el evento
             event_id = existing_event['id']
             event = {
                 'summary': summary_local if event_details['localidad'] == 'local' else summary_visitante,
@@ -147,7 +156,6 @@ def add_or_update_event(event_details):
             updated_event = service.events().update(calendarId=calendar_id, eventId=event_id, body=event).execute()
             print(f"Evento actualizado: {updated_event['summary']} (ID: {updated_event['id']})")
     else:
-        # Si no hay eventos existentes, añadir uno nuevo
         event = {
             'summary': summary_local if event_details['localidad'] == 'local' else summary_visitante,
             'location': 'Estadio La Rosaleda' if event_details['localidad'] == 'local' else event_details['estadio'],
