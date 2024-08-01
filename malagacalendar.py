@@ -89,6 +89,7 @@ def obtener_proximos_partidos():
 
             localidad = "local" if "Málaga CF" in equipo_local else "visitante"
             descripcion = "Próximo partido del Málaga CF"
+            name = f"{equipo_local} vs {equipo_visitante}"
 
             eventos.append({
                 "oponente": equipo_visitante if "Málaga CF" in equipo_local else equipo_local,
@@ -96,7 +97,8 @@ def obtener_proximos_partidos():
                 "fecha_hora_fin": fecha_hora_fin,
                 "localidad": localidad,
                 "descripcion": descripcion,
-                "estadio": estadio
+                "estadio": estadio,
+                "name": name
             })
             
         return eventos
@@ -117,9 +119,9 @@ def add_or_update_event(event_details):
     existing_event = None
     if event_details['localidad'] == 'local':
         for event in events_local:
-            if event.get('description', '') == event_details['descripcion']:
-                print(f"Summary del evento encontrado: {event.get('description', '')}")
-                print(f"Summary del evento iterado: {event_details['descripcion']}")
+            if event.get('summary', '') == event_details['name']:
+                print(f"Summary del evento encontrado: {event.get('summary', '')}")
+                print(f"Summary del evento iterado: {event_details['name']}")
                 print(f"Localizacion del evento encontrado: {event.get('location', '')}")
                 print(f"Localizacion del evento iterado: {event_details['localidad']}")
 
@@ -127,9 +129,9 @@ def add_or_update_event(event_details):
                 break
     else:
         for event in events_visitante:
-            if event.get('description', '') == event_details['descripcion']:
-                print(f"Summary del evento encontrado: {event.get('description', '')}")
-                print(f"Summary del evento iterado: {event_details['descripcion']}")
+            if event.get('summary', '') == event_details['name']:
+                print(f"Summary del evento encontrado: {event.get('summary', '')}")
+                print(f"Summary del evento iterado: {event_details['name']}")
                 print(f"Localizacion del evento encontrado: {event.get('location', '')}")
                 print(f"Localizacion del evento iterado: {event_details['localidad']}")
 
