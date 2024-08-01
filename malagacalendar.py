@@ -168,7 +168,7 @@ def add_or_update_event(event_details):
             },
         }
         created_event = service.events().insert(calendarId=calendar_id, body=event).execute()
-        print(f"Evento creado: {created_event['summary']} (ID: {created_event['id']}) (Hora inicio: {updated_event['start']})")
+        print(f"Evento creado: {created_event['summary']} (ID: {created_event['id']}) (Hora inicio: {created_event['start']})")
         time.sleep(1)  # Espera de 1 segundo para evitar problemas de tasa de solicitudes
 
 def actualizar_proximos_partidos():
