@@ -144,11 +144,9 @@ def add_or_update_event(event_details):
                 'description': event_details.get('descripcion', ''),
                 'start': {
                     'dateTime': event_details['fecha_hora_inicio'],
-                    'timeZone': 'Europe/Madrid',
                 },
                 'end': {
                     'dateTime': event_details['fecha_hora_fin'],
-                    'timeZone': 'Europe/Madrid',
                 },
             }
             updated_event = service.events().update(calendarId=calendar_id, eventId=event_id, body=event).execute()
@@ -160,11 +158,9 @@ def add_or_update_event(event_details):
             'description': event_details.get('descripcion', ''),
             'start': {
                 'dateTime': event_details['fecha_hora_inicio'],
-                'timeZone': 'Europe/Madrid',
             },
             'end': {
                 'dateTime': event_details['fecha_hora_fin'],
-                'timeZone': 'Europe/Madrid',
             },
         }
         created_event = service.events().insert(calendarId=calendar_id, body=event).execute()
