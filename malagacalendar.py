@@ -115,15 +115,26 @@ def add_or_update_event(event_details):
     events_visitante = service.events().list(calendarId=calendar_id, q=summary_visitante).execute().get('items', [])
 
     existing_event = None
-    for event in events_local + events_visitante:
-        if event.get('description', '') == event_details['descripcion'] and event.get('location', '') == event_details['localidad']:
-            print(f"Summary del evento encontrado: {event.get('description', '')}")
-            print(f"Summary del evento iterado: {event_details['descripcion']}")
-            print(f"Localizacion del evento encontrado: {event.get('location', '')}")
-            print(f"Localizacion del evento iterado: {event_details['localidad']}")
+    if event_details['localidad'] == 'local':
+        for event in events_local:
+            if event.get('description', '') == event_details['descripcion']:
+                print(f"Summary del evento encontrado: {event.get('description', '')}")
+                print(f"Summary del evento iterado: {event_details['descripcion']}")
+                print(f"Localizacion del evento encontrado: {event.get('location', '')}")
+                print(f"Localizacion del evento iterado: {event_details['localidad']}")
 
-            existing_event = event
-            break
+                existing_event = event
+                break
+    else:
+        for event in events_visitante:
+            if event.get('description', '') == event_details['descripcion']:
+                print(f"Summary del evento encontrado: {event.get('description', '')}")
+                print(f"Summary del evento iterado: {event_details['descripcion']}")
+                print(f"Localizacion del evento encontrado: {event.get('location', '')}")
+                print(f"Localizacion del evento iterado: {event_details['localidad']}")
+
+                existing_event = event
+                break
 
     if existing_event:
         print("Comparando eventos:")
