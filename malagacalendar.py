@@ -143,11 +143,11 @@ def add_or_update_event(event_details):
                 'location': 'Estadio La Rosaleda' if event_details['localidad'] == 'local' else event_details['estadio'],
                 'description': event_details.get('descripcion', ''),
                 'start': {
-                    'dateTime': datetime.fromisoformat(event_details['fecha_hora_inicio']),
+                    'dateTime': event_details['fecha_hora_inicio'],
                     'timeZone': 'Europe/Madrid',
                 },
                 'end': {
-                    'dateTime': datetime.fromisoformat(event_details['fecha_hora_fin']),
+                    'dateTime': event_details['fecha_hora_fin'],
                     'timeZone': 'Europe/Madrid',
                 },
             }
@@ -159,11 +159,11 @@ def add_or_update_event(event_details):
             'location': 'Estadio La Rosaleda' if event_details['localidad'] == 'local' else event_details['estadio'],
             'description': event_details.get('descripcion', ''),
             'start': {
-                'dateTime': datetime.fromisoformat(event_details['fecha_hora_inicio']),
+                'dateTime': event_details['fecha_hora_inicio'],
                 'timeZone': 'Europe/Madrid',
             },
             'end': {
-                'dateTime': datetime.fromisoformat(event_details['fecha_hora_fin']),
+                'dateTime': event_details['fecha_hora_fin'],
                 'timeZone': 'Europe/Madrid',
             },
         }
