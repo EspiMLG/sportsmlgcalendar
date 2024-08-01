@@ -116,8 +116,9 @@ def add_or_update_event(event_details):
 
     existing_event = None
     for event in events_local + events_visitante:
-        start_time_existing = datetime.fromisoformat(event['start']['dateTime'].replace('Z', '+00:00')).astimezone(pytz.utc)
-        start_time_new = datetime.fromisoformat(event_details['fecha_hora_inicio']).astimezone(pytz.utc)
+        start_time_existing = datetime.fromisoformat(event['start']['dateTime'])
+        start_time_new = datetime.fromisoformat(event_details['fecha_hora_inicio'])
+        
         if start_time_existing == start_time_new:
             existing_event = event
             break
