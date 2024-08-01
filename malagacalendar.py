@@ -80,9 +80,9 @@ def obtener_proximos_partidos():
                 tz_madrid = pytz.timezone('Europe/Madrid')
                 fecha_hora_local = tz_madrid.localize(fecha_hora_naive)
 
-                # Convertir a UTC para Google Calendar
-                fecha_hora_inicio = fecha_hora_local.astimezone(pytz.utc).isoformat()
-                fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).astimezone(pytz.utc).isoformat()
+                # Guardar las horas en formato ISO 8601 manteniendo la zona horaria local
+                fecha_hora_inicio = fecha_hora_local.isoformat()
+                fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).isoformat()
             except ValueError:
                 print(f"Error al procesar la fecha y hora para el partido: {equipo_local} vs {equipo_visitante} en {fecha} {hora}")
                 continue
@@ -101,10 +101,10 @@ def obtener_proximos_partidos():
             
         return eventos
     except Exception as e:
-            print(f"No se pudo extraer la información de los partidos: {e}")
-            return None
+        print(f"No se pudo extraer la información de los partidos: {e}")
+        return None
     finally:
-            driver.quit()
+        driver.quit()
 
 def add_or_update_event(event_details):
     summary_local = f"Málaga CF vs {event_details['oponente']}"
