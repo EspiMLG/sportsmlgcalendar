@@ -117,6 +117,11 @@ def add_or_update_event(event_details):
     existing_event = None
     for event in events_local + events_visitante:
         if event.get('description', '') == event_details['descripcion'] and event.get('location', '') == event_details['localidad']:
+            print(f"Summary del evento encontrado: {event.get('description', '')}")
+            print(f"Summary del evento iterado: {event_details['descripcion']}")
+            print(f"Localizacion del evento encontrado: {event.get('location', '')}")
+            print(f"Localizacion del evento iterado: {event_details['localidad']}")
+
             existing_event = event
             break
 
