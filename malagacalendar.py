@@ -116,7 +116,7 @@ def add_or_update_event(event_details):
 
     existing_event = None
     for event in events_local + events_visitante:
-        if event.get('description', '') == event_details['descripcion']:
+        if event.get('description', '') == event_details['descripcion'] and event.get('location', '') == event_details['localidad']:
             existing_event = event
             break
 
