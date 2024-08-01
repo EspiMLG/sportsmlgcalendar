@@ -60,25 +60,29 @@ def obtener_proximos_partidos():
             equipos = partido.find_all('span', class_='MkFootballMatchCard__teamName')
             equipo_local = equipos[0].text.strip() if len(equipos) > 0 else 'Desconocido'
             equipo_visitante = equipos[1].text.strip() if len(equipos) > 1 else 'Desconocido'
-            hora = partido.find('div', class_='MkFootballMatchCard__time').text.strip() if partido.find('div', class_='MkFootballMatchCard__time') else '10:00'
+            hora = partido.find('div', class_='MkFootballMatchCard__time').text.strip() if partido.find('div', class_='MkFootballMatchCard__time') else '12:00'
             fecha = partido.find('div', class_='MkFootballMatchCard__date').text.strip() if partido.find('div', class_='MkFootballMatchCard__date') else 'Desconocido'
             estadio = partido.find('div', class_='MkFootballMatchCard__venue').text.strip() if partido.find('div', class_='MkFootballMatchCard__venue') else 'Estadio Visitante'
 
             if hora == '-- : --':
-                hora = '10:00'
-            
+                hora = '12:00'
+
             fecha_traducida = traducir_fecha(fecha)
             if not fecha_traducida:
                 print(f"Error al procesar la fecha: {fecha}")
                 continue
 
             try:
-                # Parsea la fecha y hora local
-                fecha_hora_inicio_local = dt.datetime.strptime(f"{fecha_traducida} {hora}", '%d %b %Y %H:%M')
-                
-                # Asegura que se interprete como hora local (Europe/Madrid)
-                fecha_hora_inicio = fecha_hora_inicio_local.replace(tzinfo=timezone.utc).isoformat()
-                fecha_hora_fin = (fecha_hora_inicio_local + dt.timedelta(hours=2)).replace(tzinfo=timezone.utc).isoformat()
+                # Parsea la fecha y hora local como naive
+                fecha_hora_naive = dt.datetime.strptime(f"{fecha_traducida} {hora}", '%d %b %Y %H:%M')
+
+                # Asignar la zona horaria de Madrid
+                tz_madrid = pytz.timezone('Europe/Madrid')
+                fecha_hora_local = tz_madrid.localize(fecha_hora_naive)
+
+                # Convertir a UTC para Google Calendar
+                fecha_hora_inicio = fecha_hora_local.astimezone(pytz.utc).isoformat()
+                fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).astimezone(pytz.utc).isoformat()
             except ValueError:
                 print(f"Error al procesar la fecha y hora para el partido: {equipo_local} vs {equipo_visitante} en {fecha} {hora}")
                 continue
@@ -94,38 +98,29 @@ def obtener_proximos_partidos():
                 "descripcion": descripcion,
                 "estadio": estadio
             })
-
+            
         return eventos
     except Exception as e:
-        print(f"No se pudo extraer la información de los partidos: {e}")
-        return None
+            print(f"No se pudo extraer la información de los partidos: {e}")
+            return None
     finally:
-        driver.quit()
+            driver.quit()
 
 def add_or_update_event(event_details):
     summary_local = f"Málaga CF vs {event_details['oponente']}"
     summary_visitante = f"{event_details['oponente']} vs Málaga CF"
-    
+
     # Consultar si hay eventos existentes por resumen (nombre del partido)
     events_local = service.events().list(calendarId=calendar_id, q=summary_local).execute().get('items', [])
     events_visitante = service.events().list(calendarId=calendar_id, q=summary_visitante).execute().get('items', [])
 
     existing_event = None
-    if events_local:
-        for event in events_local:
-            # Convertir las fechas a objetos datetime y luego a UTC
-            start_time_existing = datetime.fromisoformat(event['start']['dateTime'].replace('Z', '+00:00')).astimezone(pytz.utc)
-            start_time_new = datetime.fromisoformat(event_details['fecha_hora_inicio']).astimezone(pytz.utc)
-            if start_time_existing == start_time_new:
-                existing_event = event
-                break
-    if not existing_event and events_visitante:
-        for event in events_visitante:
-            start_time_existing = datetime.fromisoformat(event['start']['dateTime'].replace('Z', '+00:00')).astimezone(pytz.utc)
-            start_time_new = datetime.fromisoformat(event_details['fecha_hora_inicio']).astimezone(pytz.utc)
-            if start_time_existing == start_time_new:
-                existing_event = event
-                break
+    for event in events_local + events_visitante:
+        start_time_existing = datetime.fromisoformat(event['start']['dateTime'].replace('Z', '+00:00')).astimezone(pytz.utc)
+        start_time_new = datetime.fromisoformat(event_details['fecha_hora_inicio']).astimezone(pytz.utc)
+        if start_time_existing == start_time_new:
+            existing_event = event
+            break
 
     if existing_event:
         print("Comparando eventos:")
@@ -174,7 +169,6 @@ def add_or_update_event(event_details):
         created_event = service.events().insert(calendarId=calendar_id, body=event).execute()
         print(f"Evento creado: {created_event['summary']} (ID: {created_event['id']})")
         time.sleep(1)  # Espera de 1 segundo para evitar problemas de tasa de solicitudes
-
 
 def actualizar_proximos_partidos():
     # Obtener la lista de próximos partidos
