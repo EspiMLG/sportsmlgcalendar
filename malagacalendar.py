@@ -77,12 +77,12 @@ def obtener_proximos_partidos():
                 fecha_hora_naive = dt.datetime.strptime(f"{fecha_traducida} {hora}", '%d %b %Y %H:%M')
 
                 # Asignar la zona horaria de Madrid
-                tz_madrid = pytz.timezone('Europe/Madrid')
-                fecha_hora_local = tz_madrid.localize(fecha_hora_naive)
+                #tz_madrid = pytz.timezone('Europe/Madrid')
+                #fecha_hora_local = tz_madrid.localize(fecha_hora_naive)
 
                 # Guardar las horas en formato ISO 8601 manteniendo la zona horaria local
-                fecha_hora_inicio = fecha_hora_local.isoformat()
-                fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).isoformat()
+                fecha_hora_inicio = fecha_hora_naive.isoformat()
+                fecha_hora_fin = (fecha_hora_naive + dt.timedelta(hours=2)).isoformat()
             except ValueError:
                 print(f"Error al procesar la fecha y hora para el partido: {equipo_local} vs {equipo_visitante} en {fecha} {hora}")
                 continue
