@@ -80,7 +80,7 @@ def obtener_proximos_partidos():
 
                 # Asignar la zona horaria de Madrid
                 tz_madrid = pytz.timezone('Europe/Madrid')
-                fecha_hora_local = tz_madrid.localize(fecha_hora_naive)
+                fecha_hora_local = tz_madrid.localize(fecha_hora_naive) + dt.timedelta(hours=2)
 
                 # Guardar las horas en formato ISO 8601 manteniendo la zona horaria local
                 fecha_hora_inicio = fecha_hora_local.isoformat()
