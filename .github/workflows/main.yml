@@ -2,7 +2,7 @@ name: Update Google Calendar
 
 on:
   schedule:
-    - cron: '0 12 * * 7'  # Ejecutar todos los domingos UTC
+    - cron: '0 12 * * 6'  # Ejecutar todos los domingos UTC
   workflow_dispatch:  # Permitir la ejecución manual
 
 jobs:
