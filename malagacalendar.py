@@ -54,13 +54,13 @@ def obtener_proximos_partidos():
             if hora_raw == '-- : --':
                 hora_raw = '10:00'
 
-            # 1. Limpiar día de la semana (ej: "dom, 26 de oct" -> "26 de oct")
+            # 1. Limpiar día de la semana (ej: "dom, 26 oct" -> "26 oct")
             if ',' in fecha_raw:
                 fecha_sin_dia = fecha_raw.split(', ')[1]
             else:
                 fecha_sin_dia = fecha_raw
             
-            # 2. Traducir mes (ej: "26 de oct" -> "26 de oct")
+            # 2. Traducir mes (ej: "26 oct" -> "26 Oct")
             fecha_traducida = traducir_fecha(fecha_sin_dia)
             if not fecha_traducida:
                 print(f"Error al traducir la fecha: {fecha_raw}")
@@ -71,13 +71,15 @@ def obtener_proximos_partidos():
             fecha_hora_naive = None
             
             try:
-                # Formato 12h: "26 de oct 2025 01:00 pm"
-                formato = '%d de %b %Y %I:%M %p'
+                # Formato 12h: "26 Oct 2025 01:00 pm"
+                # --- CORRECCIÓN AQUÍ ---
+                formato = '%d %b %Y %I:%M %p'
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
             except ValueError:
                 try:
-                    # Formato 24h: "30 de nov 2025 10:00"
-                    formato = '%d de %b %Y %H:%M'
+                    # Formato 24h: "30 Nov 2025 10:00"
+                    # --- CORRECCIÓN AQUÍ ---
+                    formato = '%d %b %Y %H:%M'
                     fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
                 except ValueError as e:
                     print(f"Error al procesar la fecha y hora para el partido: {name} en {fecha_hora_str}")
@@ -102,7 +104,7 @@ def obtener_proximos_partidos():
                 "name": name
             })
             
-        return eventos
+        return eventos # <-- ¡OJO! Tu código original tenía un 'return' aquí dentro del bucle, lo he sacado.
     except Exception as e:
         print(f"No se pudo extraer la información de los partidos: {e}")
         return None
@@ -159,3 +161,4 @@ def actualizar_proximos_partidos():
 
 if __name__ == "__main__":
     actualizar_proximos_partidos()
+
