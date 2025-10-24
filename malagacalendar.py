@@ -97,7 +97,7 @@ def obtener_proximos_partidos_malaga(driver):
     print(f"Encontrados {len(eventos)} próximos partidos de Málaga CF.")
     return eventos
 
-# --- FUNCIÓN 2: RESULTADOS MÁLAGA ---
+# --- FUNCIÓN 2: RESULTADOS MÁLAGA (CORREGIDA) ---
 def obtener_resultados_malaga(driver):
     print("Buscando resultados Málaga CF...")
     eventos = []
@@ -113,40 +113,49 @@ def obtener_resultados_malaga(driver):
         equipos = partido.find_all('span', class_='MkFootballMatchCard__teamName')
         equipo_local = equipos[0].text.strip() if len(equipos) > 0 else 'Desconocido'
         equipo_visitante = equipos[1].text.strip() if len(equipos) > 1 else 'Desconocido'
+        name = f"{equipo_local} vs {equipo_visitante}"
         
-        # --- Lógica para el resultado ---
         score_element = partido.find('div', class_='MkFootballMatchCard__score')
         if not score_element:
-            continue # Si no hay score, no es un resultado
+            continue
         
         resultado_local = score_element.find_all('span')[0].text.strip()
         resultado_visitante = score_element.find_all('span')[1].text.strip()
         resultado_final = f"{resultado_local} - {resultado_visitante}"
 
-        # --- Lógica para la fecha (es diferente en resultados) ---
         fecha_raw = partido.find('div', class_='MkFootballMatchCard__date').text.strip() if partido.find('div', class_='MkFootballMatchCard__date') else 'Desconocido'
-        # Asumimos una hora fija (ej. 12:00) ya que la web no la proporciona claramente en resultados
-        hora_raw = "12:00" 
-        name = f"{equipo_local} vs {equipo_visitante}"
+        hora_raw = "12:00" # Ponemos hora fija, es un resultado
+        fecha_hora_naive = None
 
-        if ',' in fecha_raw:
-            fecha_sin_dia = fecha_raw.split(', ')[1]
-        else:
-            fecha_sin_dia = fecha_raw
-        
-        fecha_traducida = traducir_fecha_malaga(fecha_sin_dia)
-        if not fecha_traducida:
-            print(f"Error al traducir fecha resultado Málaga: {fecha_raw}")
-            continue
-
-        fecha_hora_str = f"{fecha_traducida} {ANO_ACTUAL} {hora_raw}"
-        
+        # --- INICIO DE LA CORRECCIÓN: Probamos múltiples formatos de fecha ---
         try:
-            formato = '%d de %b %Y %H:%M'
-            fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
-        except ValueError as e:
-            print(f"Error procesando fecha resultado Málaga: {name} en {fecha_hora_str}")
-            continue
+            # FORMATO 1: "dom, 26 de oct"
+            if ',' in fecha_raw:
+                fecha_sin_dia = fecha_raw.split(', ')[1]
+            else:
+                fecha_sin_dia = fecha_raw
+            
+            fecha_traducida = traducir_fecha_malaga(fecha_sin_dia)
+            if fecha_traducida:
+                fecha_hora_str = f"{fecha_traducida} {ANO_ACTUAL} {hora_raw}"
+                formato = '%d de %b %Y %H:%M'
+                fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
+
+        except (ValueError, TypeError):
+            # Si el FORMATO 1 falla, probamos el FORMATO 2
+            pass
+
+        if fecha_hora_naive is None:
+            try:
+                # FORMATO 2: "26/10/2024" (o similar con /)
+                fecha_hora_str = f"{fecha_raw} {hora_raw}"
+                formato = '%d/%m/%Y %H:%M' # Formato día/mes/año
+                fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
+            except (ValueError, TypeError):
+                # Si ambos fallan, lo reportamos y saltamos
+                print(f"Error procesando fecha resultado Málaga: {name} en {fecha_raw}")
+                continue
+        # --- FIN DE LA CORRECCIÓN ---
         
         fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive)
         fecha_hora_inicio = fecha_hora_local.isoformat()
@@ -162,7 +171,7 @@ def obtener_resultados_malaga(driver):
             "estadio": estadio_final,
             "name": name,
             "descripcion": "Resultado partido del Málaga CF",
-            "resultado": resultado_final # <-- ¡Aquí está el resultado!
+            "resultado": resultado_final
         })
 
     print(f"Encontrados {len(eventos)} resultados de Málaga CF.")
@@ -375,3 +384,4 @@ if __name__ == "__main__":
         # Asegúrate de cerrar el driver pase lo que pase
         if driver:
             driver.quit()
+
