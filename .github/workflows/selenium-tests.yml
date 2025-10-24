@@ -16,7 +16,8 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4
+        # --- AQUÍ ESTÁ EL CAMBIO: Se ha quitado libgconf-2-4 ---
+        sudo apt-get install -y wget unzip xvfb libxi6
         wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
         sudo dpkg -i google-chrome-stable_current_amd64.deb
         sudo apt-get -fy install
@@ -28,9 +29,7 @@ jobs:
 
     - name: Run Selenium Tests
       env:
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-        API_KEY: ${{ secrets.API_KEY }}
-        SEARCH_ENGINE_ID: ${{ secrets.SEARCH_ENGINE_ID }}
+        # GOOGLE_APPLICATION_CREDENTIALS ya no es necesario
         DISPLAY: :99
       run: |
         sudo Xvfb :99 -ac &
