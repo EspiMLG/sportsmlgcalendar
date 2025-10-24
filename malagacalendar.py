@@ -2,25 +2,25 @@ import os
 import time
 import datetime as dt
 from datetime import datetime
-import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 import pytz
-from icalendar import Calendar, Event # <-- Importación añadida
+from icalendar import Calendar, Event
 
-# --- Función de scraping (sin cambios) ---
+# --- Función de scraping (Modificada) ---
 def traducir_fecha(fecha_es):
     traduccion = {
         'ene': 'Jan', 'feb': 'Feb', 'mar': 'Mar', 'abr': 'Apr',
         'may': 'May', 'jun': 'Jun', 'jul': 'Jul', 'ago': 'Aug',
         'sep': 'Sep', 'oct': 'Oct', 'nov': 'Nov', 'dic': 'Dec'
     }
+    fecha_es_limpia = fecha_es.lower().replace('.', '')
     for mes_es, mes_en in traduccion.items():
-        if mes_es in fecha_es:
-            return fecha_es.replace(mes_es, mes_en)
+        if mes_es in fecha_es_limpia:
+            return fecha_es_limpia.replace(mes_es, mes_en)
     return None
 
 def obtener_proximos_partidos():
@@ -38,40 +38,59 @@ def obtener_proximos_partidos():
         partidos = soup.find_all('article', class_='MkFootballMatchCard')
 
         eventos = []
+        ano_actual = dt.datetime.now().year
+        tz_madrid = pytz.timezone('Europe/Madrid')
+
         for partido in partidos:
             equipos = partido.find_all('span', class_='MkFootballMatchCard__teamName')
             equipo_local = equipos[0].text.strip() if len(equipos) > 0 else 'Desconocido'
             equipo_visitante = equipos[1].text.strip() if len(equipos) > 1 else 'Desconocido'
-            hora = partido.find('div', class_='MkFootballMatchCard__time').text.strip() if partido.find('div', class_='MkFootballMatchCard__time') else '10:00'
-            fecha = partido.find('div', class_='MkFootballMatchCard__date').text.strip() if partido.find('div', class_='MkFootballMatchCard__date') else 'Desconocido'
+            hora_raw = partido.find('div', class_='MkFootballMatchCard__time').text.strip() if partido.find('div', class_='MkFootballMatchCard__time') else '10:00'
+            fecha_raw = partido.find('div', class_='MkFootballMatchCard__date').text.strip() if partido.find('div', class_='MkFootballMatchCard__date') else 'Desconocido'
             estadio = partido.find('div', class_='MkFootballMatchCard__venue').text.strip() if partido.find('div', class_='MkFootballMatchCard__venue') else 'Estadio Visitante'
+            
+            name = f"{equipo_local} vs {equipo_visitante}"
 
-            if hora == '-- : --':
-                hora = '10:00'
+            if hora_raw == '-- : --':
+                hora_raw = '10:00'
 
-            fecha_traducida = traducir_fecha(fecha)
+            # 1. Limpiar día de la semana (ej: "dom, 26 de oct" -> "26 de oct")
+            if ',' in fecha_raw:
+                fecha_sin_dia = fecha_raw.split(', ')[1]
+            else:
+                fecha_sin_dia = fecha_raw
+            
+            # 2. Traducir mes (ej: "26 de oct" -> "26 de oct")
+            fecha_traducida = traducir_fecha(fecha_sin_dia)
             if not fecha_traducida:
-                print(f"Error al procesar la fecha: {fecha}")
+                print(f"Error al traducir la fecha: {fecha_raw}")
                 continue
 
+            # 3. Combinar y probar formatos
+            fecha_hora_str = f"{fecha_traducida} {ano_actual} {hora_raw.replace('.', '')}"
+            fecha_hora_naive = None
+            
             try:
-                fecha_hora_naive = dt.datetime.strptime(f"{fecha_traducida} {hora}", '%d %b %Y %H:%M')
-                tz_madrid = pytz.timezone('Europe/Madrid')
-                # La hora de la web del Málaga ya es la hora de España, no sumes 2 horas.
-                # Solo localízala
-                fecha_hora_local = tz_madrid.localize(fecha_hora_naive) 
-
-                fecha_hora_inicio = fecha_hora_local.isoformat()
-                fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).isoformat()
+                # Formato 12h: "26 de oct 2025 01:00 pm"
+                formato = '%d de %b %Y %I:%M %p'
+                fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
             except ValueError:
-                print(f"Error al procesar la fecha y hora para el partido: {equipo_local} vs {equipo_visitante} en {fecha} {hora}")
-                continue
+                try:
+                    # Formato 24h: "30 de nov 2025 10:00"
+                    formato = '%d de %b %Y %H:%M'
+                    fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
+                except ValueError as e:
+                    print(f"Error al procesar la fecha y hora para el partido: {name} en {fecha_hora_str}")
+                    print(f"Error detallado: {e}")
+                    continue
+            
+            # 4. Asignar zona horaria
+            fecha_hora_local = tz_madrid.localize(fecha_hora_naive)
+            fecha_hora_inicio = fecha_hora_local.isoformat()
+            fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).isoformat()
 
             localidad = "local" if "Málaga CF" in equipo_local else "visitante"
             descripcion = "Próximo partido del Málaga CF"
-            name = f"{equipo_local} vs {equipo_visitante}"
-
-            # Replicamos la lógica del estadio que tenías
             estadio_final = 'Estadio La Rosaleda' if localidad == 'local' else estadio
 
             eventos.append({
@@ -90,26 +109,19 @@ def obtener_proximos_partidos():
     finally:
         driver.quit()
 
-# --- NUEVA FUNCIÓN PARA GENERAR EL .ICS ---
+# --- NUEVA FUNCIÓN PARA GENERAR EL .ICS (Sin cambios) ---
 def generar_archivo_ics(lista_partidos, nombre_archivo="partidos.ics"):
-    """
-    Toma la lista de partidos y genera el archivo .ics
-    """
     cal = Calendar()
-    
-    # Propiedades estándar del calendario
     cal.add('prodid', '-//SportsMLGCalendar//espi.mlg//ES')
     cal.add('version', '2.0')
     cal.add('calscale', 'GREGORIAN')
     cal.add('X-WR-CALNAME', 'Calendario Málaga CF y Unicaja')
     cal.add('X-WR-TIMEZONE', 'Europe/Madrid')
 
-    print(f"Generando eventos para {nombre_archivo}...")
+    print(f"Generando {len(lista_partidos)} eventos para {nombre_archivo}...")
 
     for partido in lista_partidos:
         evento = Event()
-        
-        # Obtenemos las fechas ISO (que ya tienen timezone)
         dt_inicio = datetime.fromisoformat(partido['fecha_hora_inicio'])
         dt_fin = datetime.fromisoformat(partido['fecha_hora_fin'])
 
@@ -120,34 +132,30 @@ def generar_archivo_ics(lista_partidos, nombre_archivo="partidos.ics"):
         evento.add('location', partido['estadio'])
         evento.add('description', partido['descripcion'])
         
-        # UID único para que el calendario sepa qué evento actualizar
         uid = f"{partido['fecha_hora_inicio']}-{partido['name'].replace(' ', '')}@sportsmlg.com"
         evento.add('uid', uid)
-        
         cal.add_component(evento)
 
-    # Guarda el calendario en un archivo
     with open(nombre_archivo, 'wb') as f:
         f.write(cal.to_ical())
         
     print(f"¡Éxito! Archivo '{nombre_archivo}' generado correctamente.")
 
-# --- LÓGICA PRINCIPAL MODIFICADA ---
+# --- LÓGICA PRINCIPAL (Modificada para que no falle si no hay partidos) ---
 def actualizar_proximos_partidos():
     proximos_partidos = obtener_proximos_partidos()
     
-    if proximos_partidos:
+    if proximos_partidos and len(proximos_partidos) > 0:
         print(f"Próximos partidos encontrados: {len(proximos_partidos)}")
-        
-        # 1. Generar el archivo .ics
         generar_archivo_ics(proximos_partidos, "partidos.ics")
-        
-        # 2. (Opcional) Aquí podrías añadir la lógica para Unicaja
-        # y añadirla a la misma lista antes de generar el .ics
-        
     else:
-        print("No se encontró información de los próximos partidos.")
+        print("No se encontró información de los próximos partidos o la lista está vacía.")
+        # Creamos un .ics vacío para que el git add no falle
+        # aunque lo ideal es que el 'if' del git add lo maneje.
+        # Por seguridad, nos aseguramos de que el script no falle.
+        # Opcional: generar un ics vacío
+        # generar_archivo_ics([], "partidos.ics") 
+        # print("Se ha generado un archivo .ics vacío.")
 
-# Llamada principal
 if __name__ == "__main__":
     actualizar_proximos_partidos()
