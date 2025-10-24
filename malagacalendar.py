@@ -54,39 +54,35 @@ def obtener_proximos_partidos():
             if hora_raw == '-- : --':
                 hora_raw = '10:00'
 
-            # 1. Limpiar día de la semana (ej: "dom, 26 oct" -> "26 oct")
             if ',' in fecha_raw:
                 fecha_sin_dia = fecha_raw.split(', ')[1]
             else:
                 fecha_sin_dia = fecha_raw
             
-            # 2. Traducir mes (ej: "26 oct" -> "26 Oct")
             fecha_traducida = traducir_fecha(fecha_sin_dia)
             if not fecha_traducida:
                 print(f"Error al traducir la fecha: {fecha_raw}")
                 continue
 
-            # 3. Combinar y probar formatos
             fecha_hora_str = f"{fecha_traducida} {ano_actual} {hora_raw.replace('.', '')}"
             fecha_hora_naive = None
             
             try:
-                # Formato 12h: "26 Oct 2025 01:00 pm"
-                # --- CORRECCIÓN AQUÍ ---
-                formato = '%d %b %Y %I:%M %p'
+                # Formato 12h: "26 de Oct 2025 01:00 pm"
+                # --- CORRECCIÓN 1: Añadimos "de" de nuevo ---
+                formato = '%d de %b %Y %I:%M %p'
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
             except ValueError:
                 try:
-                    # Formato 24h: "30 Nov 2025 10:00"
-                    # --- CORRECCIÓN AQUÍ ---
-                    formato = '%d %b %Y %H:%M'
+                    # Formato 24h: "30 de Nov 2025 10:00"
+                    # --- CORRECCIÓN 1: Añadimos "de" de nuevo ---
+                    formato = '%d de %b %Y %H:%M'
                     fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
                 except ValueError as e:
                     print(f"Error al procesar la fecha y hora para el partido: {name} en {fecha_hora_str}")
                     print(f"Error detallado: {e}")
                     continue
             
-            # 4. Asignar zona horaria
             fecha_hora_local = tz_madrid.localize(fecha_hora_naive)
             fecha_hora_inicio = fecha_hora_local.isoformat()
             fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).isoformat()
@@ -104,13 +100,15 @@ def obtener_proximos_partidos():
                 "name": name
             })
             
-        return eventos # <-- ¡OJO! Tu código original tenía un 'return' aquí dentro del bucle, lo he sacado.
+        # --- CORRECCIÓN 2: El 'return' DEBE IR FUERA DEL BUCLE 'for' ---
+        return eventos 
+    
     except Exception as e:
         print(f"No se pudo extraer la información de los partidos: {e}")
         return None
     finally:
         driver.quit()
-
+        
 # --- NUEVA FUNCIÓN PARA GENERAR EL .ICS (Sin cambios) ---
 def generar_archivo_ics(lista_partidos, nombre_archivo="partidos.ics"):
     cal = Calendar()
@@ -161,4 +159,5 @@ def actualizar_proximos_partidos():
 
 if __name__ == "__main__":
     actualizar_proximos_partidos()
+
 
