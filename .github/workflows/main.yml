@@ -2,18 +2,20 @@ name: Update Google Calendar
 
 on:
   schedule:
-    - cron: '0 12 * * 6'  # Ejecutar todos los domingos UTC
+    - cron: '0 12 * * 6'  # Ejecutar todos los sábados a las 12:00 UTC
   workflow_dispatch:  # Permitir la ejecución manual
 
 jobs:
   update-calendar:
     runs-on: ubuntu-latest
+    
+    # --- PASO AÑADIDO: Dar permisos para hacer push ---
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -35,11 +37,22 @@ jobs:
 
     - name: Run update script
       env:
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-        API_KEY: ${{ secrets.API_KEY }}
-        SEARCH_ENGINE_ID: ${{ secrets.SEARCH_ENGINE_ID }}
+        # Ya no necesitamos GOOGLE_APPLICATION_CREDENTIALS
         DISPLAY: :99
       run: |
         sudo Xvfb :99 -ac &
         python malagacalendar.py
 
+    # --- PASO AÑADIDO: Hacer commit y push del .ics generado ---
+    - name: Commit and push if changes
+      run: |
+        git config --global user.name "GitHub Action Bot"
+        git config --global user.email "github-actions-bot@users.noreply.github.com"
+        git add partidos.ics
+        # Comprobar si hay cambios para commitear
+        if git diff --staged --quiet; then
+          echo "No hay cambios en el calendario, no se requiere commit."
+        else
+          git commit -m "Actualización automática de calendario 🤖"
+          git push
+        fi
