@@ -1,6 +1,6 @@
 beautifulsoup4
 requests
-google-api-python-client
 selenium
 webdriver_manager
 pytz
+icalendar
