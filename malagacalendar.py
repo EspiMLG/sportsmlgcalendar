@@ -318,12 +318,19 @@ def generar_archivo_ics(lista_partidos, nombre_archivo="partidos.ics"):
 # --- LÓGICA PRINCIPAL (Modificada para llamarlo todo) ---
 if __name__ == "__main__":
     
-    # --- Configurar driver de Selenium UNA VEZ ---
+    # --- Configurar driver de Selenium UNA VEZ (CON NUEVAS OPCIONES) ---
     options = Options()
     options.headless = True
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36")
+    
+    # --- LÍNEAS NUEVAS ANTI-BOT ---
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option('useAutomationExtension', False)
+    # --- FIN DE LÍNEAS NUEVAS ---
+    
     driver = None
     
     try:
