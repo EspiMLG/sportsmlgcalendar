@@ -1,5 +1,5 @@
 import os
-import time
+import time # <--- AÑADIDO PARA LA PAUSA DE UNICAJA
 import datetime as dt
 from datetime import datetime
 from bs4 import BeautifulSoup
@@ -12,13 +12,13 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pytz
 from icalendar import Calendar, Event
-from selenium_stealth import stealth # <--- ¡SOLUCIÓN 1!
+from selenium_stealth import stealth 
 
 # --- ZONA HORARIA ---
 TZ_MADRID = pytz.timezone('Europe/Madrid')
 ANO_ACTUAL = dt.datetime.now().year
 
-# --- FUNCIÓN 1: PRÓXIMOS MÁLAGA (Sin cambios) ---
+# --- FUNCIÓN 1: PRÓXIMOS MÁLAGA (CORREGIDA) ---
 def traducir_fecha_malaga(fecha_es):
     traduccion = {
         'ene': 'Jan', 'feb': 'Feb', 'mar': 'Mar', 'abr': 'Apr',
@@ -69,11 +69,13 @@ def obtener_proximos_partidos_malaga(driver):
         fecha_hora_naive = None
         
         try:
-            formato = '%d de %b %Y %I:%M %p'
+            # --- CORRECCIÓN 1: Quitado el "de" ---
+            formato = '%d %b %Y %I:%M %p'
             fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
         except ValueError:
             try:
-                formato = '%d de %b %Y %H:%M'
+                # --- CORRECCIÓN 1: Quitado el "de" ---
+                formato = '%d %b %Y %H:%M'
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
             except ValueError as e:
                 print(f"Error procesando fecha Málaga: {name} en {fecha_hora_str}")
@@ -97,7 +99,7 @@ def obtener_proximos_partidos_malaga(driver):
     print(f"Encontrados {len(eventos)} próximos partidos de Málaga CF.")
     return eventos
 
-# --- FUNCIÓN 2: RESULTADOS MÁLAGA (¡SOLUCIÓN 2!) ---
+# --- FUNCIÓN 2: RESULTADOS MÁLAGA (CORREGIDA) ---
 def obtener_resultados_malaga(driver):
     print("Buscando resultados Málaga CF...")
     eventos = []
@@ -124,36 +126,34 @@ def obtener_resultados_malaga(driver):
         resultado_final = f"{resultado_local} - {resultado_visitante}"
 
         fecha_raw = partido.find('div', class_='MkFootballMatchCard__date').text.strip()
-        hora_raw = "12:00" # Ponemos hora fija, es un resultado
+        
+        # --- LÍNEA DE DEPURACIÓN AÑADIDA ---
+        print(f"DEBUG MÁLAGA RESULTADOS: Fecha raw para '{name}' es: '{fecha_raw}'")
+        
+        hora_raw = "12:00" 
         fecha_hora_naive = None
         
-        # --- INICIO "SUPER-TRADUCTOR" ---
         formatos_a_probar = [
-            '%d de %b %Y %H:%M', # "26 de oct 2024 12:00" (traducido)
+            # --- CORRECCIÓN 2: Quitado el "de" ---
+            '%d %b %Y %H:%M',    # "26 Oct 2024 12:00" (traducido) 
             '%d/%m/%Y %H:%M',   # "26/10/2024 12:00"
             '%d/%m %H:%M',      # "26/10 12:00" (añadiremos el año)
             '%d.%m.%Y %H:%M',   # "26.10.2024 12:00"
             '%d.%m %H:%M'       # "26.10 12:00" (añadiremos el año)
         ]
 
-        # Primero, intentamos traducir el mes si es texto
         if ',' in fecha_raw:
             fecha_raw = fecha_raw.split(', ')[1]
         fecha_traducida = traducir_fecha_malaga(fecha_raw)
         
         if fecha_traducida:
-            # Si se pudo traducir (ej. "26 de oct"), usamos ese
             fecha_str_procesada = f"{fecha_traducida} {ANO_ACTUAL} {hora_raw}"
         else:
-            # Si no, usamos la fecha raw (ej. "26/10/2024" o "26/10")
             fecha_str_procesada = f"{fecha_raw} {hora_raw}"
 
-        # Bucle para probar formatos
         for formato in formatos_a_probar:
             try:
-                # Si el formato no tiene año (%Y), lo añadimos
                 if '%Y' not in formato:
-                    # Añadimos el año actual a la fecha
                     if '/' in fecha_str_procesada:
                         partes = fecha_str_procesada.split(' ')
                         fecha_str_procesada = f"{partes[0]}/{ANO_ACTUAL} {partes[1]}"
@@ -162,15 +162,13 @@ def obtener_resultados_malaga(driver):
                          fecha_str_procesada = f"{partes[0]}.{ANO_ACTUAL} {partes[1]}"
                 
                 fecha_hora_naive = dt.datetime.strptime(fecha_str_procesada, formato)
-                break # ¡Éxito! Salimos del bucle
+                break 
             except ValueError:
-                continue # Formato incorrecto, probamos el siguiente
+                continue 
 
         if fecha_hora_naive is None:
-            # Si después de probar todos los formatos, ninguno funciona
             print(f"Error FATAL procesando fecha resultado Málaga: {name} en {fecha_raw}")
             continue
-        # --- FIN "SUPER-TRADUCTOR" ---
         
         fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive)
         fecha_hora_inicio = fecha_hora_local.isoformat()
@@ -193,11 +191,16 @@ def obtener_resultados_malaga(driver):
     return eventos
 
 
-# --- FUNCIÓN 3: PRÓXIMOS UNICAJA (Sin cambios) ---
+# --- FUNCIÓN 3: PRÓXIMOS UNICAJA (CORREGIDA) ---
 def obtener_proximos_partidos_unicaja(driver):
     print("Buscando próximos partidos Unicaja...")
     eventos = []
     driver.get("https://www.unicajabaloncesto.com/calendario")
+
+    # --- CORRECCIÓN 3: PAUSA ANTI-BOT ---
+    print("Esperando 3 segundos para evitar detección de bot...")
+    time.sleep(3) 
+
     WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "div.partido"))
     )
@@ -244,11 +247,16 @@ def obtener_proximos_partidos_unicaja(driver):
     print(f"Encontrados {len(eventos)} próximos partidos de Unicaja.")
     return eventos
 
-# --- FUNCIÓN 4: RESULTADOS UNICAJA (Sin cambios) ---
+# --- FUNCIÓN 4: RESULTADOS UNICAJA (CORREGIDA) ---
 def obtener_resultados_unicaja(driver):
     print("Buscando resultados Unicaja...")
     eventos = []
     driver.get("https://www.unicajabaloncesto.com/calendario")
+
+    # --- CORRECCIÓN 3: PAUSA ANTI-BOT ---
+    print("Esperando 3 segundos para evitar detección de bot...")
+    time.sleep(3)
+
     WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "div.partido"))
     )
@@ -258,7 +266,7 @@ def obtener_resultados_unicaja(driver):
 
     for partido in partidos:
         resultado_local_raw = partido.find('div', class_='marcador_local')
-        resultado_visitante_raw = partido.find('div', class_='marcador_visitante')
+        resultado_visitante_raw = partido.find('div', classMARCADOR_VISITANTE')
         
         if not resultado_local_raw or not resultado_visitante_raw:
             continue
@@ -335,73 +343,11 @@ def generar_archivo_ics(lista_partidos, nombre_archivo="partidos.ics"):
         
     print(f"¡Éxito! Archivo '{nombre_archivo}' generado correctamente.")
 
-# --- LÓGICA PRINCIPAL (¡SOLUCIÓN 1!) ---
+# --- LÓGICA PRINCIPAL (Sin cambios) ---
 if __name__ == "__main__":
     
-    # --- Configurar driver de Selenium con MODO SIGILO ---
     options = Options()
     options.headless = True
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
-    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36")
-    
-    # Opciones anti-bot estándar
-    options.add_argument("--disable-blink-features=AutomationControlled")
-    options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    options.add_experimental_option('useAutomationExtension', False)
-    
-    driver = None
-    
-    try:
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        
-        # --- ¡AQUÍ SE ACTIVA EL MODO SIGILO! ---
-        stealth(driver,
-                languages=["en-US", "en"],
-                vendor="Google Inc.",
-                platform="Win32",
-                webgl_vendor="Intel Inc.",
-                renderer="Intel Iris OpenGL Engine",
-                fix_hairline=True,
-                )
-        # --- FIN MODO SIGILO ---
-        
-        todos_los_eventos = []
-
-        # 1. Obtener próximos Málaga
-        try:
-            todos_los_eventos.extend(obtener_proximos_partidos_malaga(driver))
-        except Exception as e:
-            print(f"ERROR GRAVE al scrapear próximos Málaga: {e}")
-
-        # 2. Obtener resultados Málaga
-        try:
-            todos_los_eventos.extend(obtener_resultados_malaga(driver))
-        except Exception as e:
-            print(f"ERROR GRAVE al scrapear resultados Málaga: {e}")
-            
-        # 3. Obtener próximos Unicaja
-        try:
-            todos_los_eventos.extend(obtener_proximos_partidos_unicaja(driver))
-        except Exception as e:
-            print(f"ERROR GRAVE al scrapear próximos Unicaja: {e}")
-
-        # 4. Obtener resultados Unicaja
-        try:
-            todos_los_eventos.extend(obtener_resultados_unicaja(driver))
-        except Exception as e:
-            print(f"ERROR GRAVE al scrapear resultados Unicaja: {e}")
-
-
-        # 5. Generar el archivo .ics final
-        if todos_los_eventos and len(todos_los_eventos) > 0:
-            print(f"Total de eventos a generar: {len(todos_los_eventos)}")
-            generar_archivo_ics(todos_los_eventos, "partidos.ics")
-        else:
-            print("No se encontró información de ningún partido o resultado.")
-            
-    except Exception as e:
-        print(f"Ha ocurrido un error general: {e}")
-    finally:
-        if driver:
-            driver.quit()
+    options.
