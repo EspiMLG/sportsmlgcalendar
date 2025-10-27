@@ -142,38 +142,32 @@ def obtener_resultados_malaga(driver):
         hora_raw = "12:00" 
         fecha_hora_naive = None
         
-        formatos_a_probar = [
-            '%d %b %Y %H:%M',    # "30 Oct 2024 12:00" (traducido) 
-            '%d/%m/%Y %H:%M',   # "30/10/2024 12:00"
-            '%d/%m %H:%M',      # "30/10 12:00" (añadiremos el año)
-            '%d.%m.%Y %H:%M',   # "30.10.2024 12:00"
-            '%d.%m %H:%M'       # "30.10 12:00" (añadiremos el año)
-        ]
-
         if ',' in fecha_raw:
-            fecha_raw = fecha_raw.split(', ')[1]
-        fecha_traducida = traducir_fecha_malaga(fecha_raw)
-        
-        if fecha_traducida:
-            fecha_traducida = fecha_traducida.replace(" de ", " ")
-            fecha_str_procesada = f"{fecha_traducida} {ANO_ACTUAL} {hora_raw}"
+            fecha_sin_dia = fecha_raw.split(', ')[1] # Quitamos "dom, " etc.
         else:
-            fecha_str_procesada = f"{fecha_raw} {hora_raw}"
+            fecha_sin_dia = fecha_raw
 
-        for formato in formatos_a_probar:
-            try:
-                if '%Y' not in formato:
-                    if '/' in fecha_str_procesada:
-                        partes = fecha_str_procesada.split(' ')
-                        fecha_str_procesada = f"{partes[0]}/{ANO_ACTUAL} {partes[1]}"
-                    elif '.' in fecha_str_procesada:
-                         partes = fecha_str_procesada.split(' ')
-                         fecha_str_procesada = f"{partes[0]}.{ANO_ACTUAL} {partes[1]}"
-                
-                fecha_hora_naive = dt.datetime.strptime(fecha_str_procesada, formato)
-                break 
-            except ValueError:
-                continue 
+        fecha_traducida = traducir_fecha_malaga(fecha_sin_dia) # Traducimos mes (ej: "28 de sept" -> "28 de sep")
+
+        if not fecha_traducida:
+            print(f"Error FATAL al traducir fecha resultado Málaga: {name} en {fecha_raw}")
+            continue
+
+        # Normalizamos quitando " de " SI EXISTE
+        fecha_normalizada = fecha_traducida.replace(" de ", " ") # "28 de sep" -> "28 sep"
+
+        fecha_str_procesada = f"{fecha_normalizada} {ANO_ACTUAL} {hora_raw}"
+        formato_esperado = '%d %b %Y %H:%M' # Ej: "28 Sep 2025 12:00"
+
+        try:
+            fecha_hora_naive = dt.datetime.strptime(fecha_str_procesada, formato_esperado)
+        except ValueError as e:
+            print(f"Error FATAL al parsear fecha resultado Málaga: {name} | String: '{fecha_str_procesada}' | Error: {e}")
+            continue
+
+        if fecha_hora_naive is None:
+            print(f"Error FATAL procesando fecha resultado Málaga: {name} en {fecha_raw}")
+            continue
 
         if fecha_hora_naive is None:
             print(f"Error FATAL procesando fecha resultado Málaga: {name} en {fecha_raw}")
@@ -209,7 +203,7 @@ def obtener_proximos_partidos_unicaja(driver):
         iframe_id = "CybotCookiebotDialogBody"
         cookie_button_id = "CybotCookiebotDialogBodyButtonAccept"
         print(f"Esperando el iframe de cookies ({iframe_id})...")
-        WebDriverWait(driver, 5).until(EC.frame_to_be_available_and_switch_to_it((By.ID, iframe_id)))
+        WebDriverWait(driver, 10).until(EC.frame_to_be_available_and_switch_to_it((By.ID, iframe_id)))
         print(f"Iframe encontrado. Buscando botón de aceptar ({cookie_button_id})...")
         cookie_button = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.ID, cookie_button_id)))
         cookie_button.click()
@@ -291,7 +285,7 @@ def obtener_resultados_unicaja(driver):
         iframe_id = "CybotCookiebotDialogBody"
         cookie_button_id = "CybotCookiebotDialogBodyButtonAccept"
         print(f"Esperando el iframe de cookies ({iframe_id})...")
-        WebDriverWait(driver, 5).until(EC.frame_to_be_available_and_switch_to_it((By.ID, iframe_id)))
+        WebDriverWait(driver, 10).until(EC.frame_to_be_available_and_switch_to_it((By.ID, iframe_id)))
         print(f"Iframe encontrado. Buscando botón de aceptar ({cookie_button_id})...")
         cookie_button = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.ID, cookie_button_id)))
         cookie_button.click()
@@ -467,6 +461,7 @@ if __name__ == "__main__":
     finally:
         if driver:
             driver.quit()
+
 
 
 
