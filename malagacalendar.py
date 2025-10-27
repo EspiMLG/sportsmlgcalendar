@@ -109,7 +109,7 @@ def obtener_resultados_malaga(driver):
     # --- ¡NUEVO! Esperamos a que los MARCADORES estén visibles ---
     try:
         WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "div.MkFootballMatchCard__score"))
+            EC.presence_of_element_located((By.CSS_SELECTOR, "div.MkFootballMatchCard__result"))
         )
         print("Marcadores de resultados de Málaga cargados.")
     except Exception as e:
@@ -131,8 +131,8 @@ def obtener_resultados_malaga(driver):
         if not score_element:
             continue # Si, pese a todo, este no tiene marcador, lo saltamos
         
-        resultado_local = score_element.find_all('span')[0].text.strip()
-        resultado_visitante = score_element.find_all('span')[1].text.strip()
+        resultado_local = score_element.find('span', class_='MkFootballMatchCard__homeScore') 
+        resultado_visitante = score_element.find('span', class_='MkFootballMatchCard__awayScore') if not resultado_local or not resultado_visitante: continue # Si falta algún marcador, saltamos
         resultado_final = f"{resultado_local} - {resultado_visitante}"
 
         fecha_raw = partido.find('div', class_='MkFootballMatchCard__date').text.strip()
@@ -466,5 +466,6 @@ if __name__ == "__main__":
     finally:
         if driver:
             driver.quit()
+
 
 
