@@ -127,7 +127,7 @@ def obtener_resultados_malaga(driver):
         equipo_visitante = equipos[1].text.strip() if len(equipos) > 1 else 'Desconocido'
         name = f"{equipo_local} vs {equipo_visitante}"
         
-        score_element = partido.find('div', class_='MkFootballMatchCard__score')
+        score_element = partido.find('div', class_='MkFootballMatchCard__result')
         if not score_element:
             continue # Si, pese a todo, este no tiene marcador, lo saltamos
         
@@ -467,6 +467,7 @@ if __name__ == "__main__":
     finally:
         if driver:
             driver.quit()
+
 
 
 
