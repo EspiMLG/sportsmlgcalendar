@@ -266,7 +266,7 @@ def obtener_resultados_unicaja(driver):
 
     for partido in partidos:
         resultado_local_raw = partido.find('div', class_='marcador_local')
-        resultado_visitante_raw = partido.find('div', classMARCADOR_VISITANTE')
+        resultado_visitante_raw = partido.find('div', class_='marcador_visitante')
         
         if not resultado_local_raw or not resultado_visitante_raw:
             continue
@@ -351,3 +351,4 @@ if __name__ == "__main__":
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.
+
