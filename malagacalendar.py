@@ -176,28 +176,30 @@ def obtener_resultados_malaga(driver):
             fecha_hora_naive = None
             
             if ',' in fecha_raw:
-                fecha_sin_dia = fecha_raw.split(', ')[1]
+                fecha_sin_dia = fecha_raw.split(', ')[1] # Quitamos "dom, " etc.
             else:
                 fecha_sin_dia = fecha_raw
-
-            fecha_traducida = traducir_fecha_malaga(fecha_sin_dia)
-            if not fecha_traducida:
+    
+            # 1. Quita " de " si existe ANTES de traducir
+            fecha_sin_de = fecha_sin_dia.replace(" de ", " ") # Ej: "28 sept" o "26 oct"
+    
+            # 2. Traduce el mes AHORA, asegurando 3 letras en inglés
+            fecha_ingles_3_letras = traducir_fecha_malaga(fecha_sin_de) # Ej: "28 Sep" o "26 Oct"
+    
+            if not fecha_ingles_3_letras:
                 print(f"Error FATAL al traducir fecha resultado Málaga: {name} en {fecha_raw}")
                 continue
-
-            fecha_normalizada = fecha_traducida.replace(" de ", " ")
-            fecha_str_procesada = f"{fecha_normalizada} {ANO_ACTUAL} {hora_raw}"
+    
+            # 3. Construye el string final y parsea
+            fecha_str_procesada = f"{fecha_ingles_3_letras} {ANO_ACTUAL} {hora_raw}" # Ej: "28 Sep 2025 12:00"
             formato_esperado = '%d %b %Y %H:%M'
-
-            # Forzamos locale a inglés antes de parsear con %b
-            current_locale = locale.getlocale(locale.LC_TIME)
+    
+            # No necesitamos forzar locale ahora, traducir_fecha_malaga ya nos da el mes bien
             try:
-                locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')
-            except locale.Error:
-                try:
-                    locale.setlocale(locale.LC_TIME, 'C') # Fallback
-                except locale.Error:
-                     print("ADVERTENCIA: No se pudo forzar el locale a inglés. El parseo de fechas podría fallar.")
+                fecha_hora_naive = dt.datetime.strptime(fecha_str_procesada, formato_esperado)
+            except ValueError as e:
+                print(f"Error FATAL al parsear fecha resultado Málaga: {name} | String: '{fecha_str_procesada}' | Error: {e}")
+                continue
 
             try:
                 fecha_hora_naive = dt.datetime.strptime(fecha_str_procesada, formato_esperado)
@@ -552,3 +554,4 @@ if __name__ == "__main__":
                 print("Driver cerrado correctamente.")
             except Exception as quit_error:
                 print(f"Error al cerrar el driver: {quit_error}")
+
