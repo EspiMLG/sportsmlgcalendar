@@ -218,8 +218,8 @@ def obtener_proximos_partidos_unicaja(driver):
     except Exception as e:
         print(f"No se pudo hacer clic en el banner de cookies (o no se encontró): {e}") 
         try: driver.switch_to.default_content() 
-            except: 
-                pass
+        except: 
+            pass
     # --- ¡NUEVO! Lógica para aceptar cookies ---
     try:
         # ID común de los botones de aceptar de CookieBot
@@ -300,8 +300,8 @@ def obtener_resultados_unicaja(driver):
     except Exception as e:
         print(f"No se pudo hacer clic en el banner de cookies (o no se encontró): {e}") 
         try: driver.switch_to.default_content() 
-            except: 
-                pass
+        except: 
+            pass
                 
     # --- ¡NUEVO! Lógica para aceptar cookies ---
     try:
@@ -466,4 +466,5 @@ if __name__ == "__main__":
     finally:
         if driver:
             driver.quit()
+
 
