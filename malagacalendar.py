@@ -1,5 +1,5 @@
 import os
-import time # <--- AÑADIDO PARA LA PAUSA DE UNICAJA
+import time # Importado para la pausa de Unicaja
 import datetime as dt
 from datetime import datetime
 from bs4 import BeautifulSoup
@@ -69,12 +69,12 @@ def obtener_proximos_partidos_malaga(driver):
         fecha_hora_naive = None
         
         try:
-            # --- CORRECCIÓN 1: Quitado el "de" ---
+            # --- CORRECCIÓN: Quitado el "de" ---
             formato = '%d %b %Y %I:%M %p'
             fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
         except ValueError:
             try:
-                # --- CORRECCIÓN 1: Quitado el "de" ---
+                # --- CORRECCIÓN: Quitado el "de" ---
                 formato = '%d %b %Y %H:%M'
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
             except ValueError as e:
@@ -97,6 +97,7 @@ def obtener_proximos_partidos_malaga(driver):
         })
             
     print(f"Encontrados {len(eventos)} próximos partidos de Málaga CF.")
+    # --- CORRECCIÓN: 'return' va FUERA del bucle ---
     return eventos
 
 # --- FUNCIÓN 2: RESULTADOS MÁLAGA (CORREGIDA) ---
@@ -134,7 +135,7 @@ def obtener_resultados_malaga(driver):
         fecha_hora_naive = None
         
         formatos_a_probar = [
-            # --- CORRECCIÓN 2: Quitado el "de" ---
+            # --- CORRECCIÓN: Quitado el "de" ---
             '%d %b %Y %H:%M',    # "26 Oct 2024 12:00" (traducido) 
             '%d/%m/%Y %H:%M',   # "26/10/2024 12:00"
             '%d/%m %H:%M',      # "26/10 12:00" (añadiremos el año)
@@ -188,6 +189,7 @@ def obtener_resultados_malaga(driver):
         })
 
     print(f"Encontrados {len(eventos)} resultados de Málaga CF.")
+    # --- CORRECCIÓN: 'return' va FUERA del bucle ---
     return eventos
 
 
@@ -197,7 +199,7 @@ def obtener_proximos_partidos_unicaja(driver):
     eventos = []
     driver.get("https://www.unicajabaloncesto.com/calendario")
 
-    # --- CORRECCIÓN 3: PAUSA ANTI-BOT ---
+    # --- PAUSA ANTI-BOT ---
     print("Esperando 3 segundos para evitar detección de bot...")
     time.sleep(3) 
 
@@ -245,6 +247,7 @@ def obtener_proximos_partidos_unicaja(driver):
         })
         
     print(f"Encontrados {len(eventos)} próximos partidos de Unicaja.")
+    # --- CORRECCIÓN: 'return' va FUERA del bucle ---
     return eventos
 
 # --- FUNCIÓN 4: RESULTADOS UNICAJA (CORREGIDA) ---
@@ -253,7 +256,7 @@ def obtener_resultados_unicaja(driver):
     eventos = []
     driver.get("https://www.unicajabaloncesto.com/calendario")
 
-    # --- CORRECCIÓN 3: PAUSA ANTI-BOT ---
+    # --- PAUSA ANTI-BOT ---
     print("Esperando 3 segundos para evitar detección de bot...")
     time.sleep(3)
 
@@ -266,6 +269,7 @@ def obtener_resultados_unicaja(driver):
 
     for partido in partidos:
         resultado_local_raw = partido.find('div', class_='marcador_local')
+        # --- CORRECCIÓN: typo 'classMARCADOR_VISITANTE' arreglado ---
         resultado_visitante_raw = partido.find('div', class_='marcador_visitante')
         
         if not resultado_local_raw or not resultado_visitante_raw:
@@ -303,6 +307,7 @@ def obtener_resultados_unicaja(driver):
         })
         
     print(f"Encontrados {len(eventos)} resultados de Unicaja.")
+    # --- CORRECCIÓN: 'return' va FUERA del bucle ---
     return eventos
 
 
@@ -343,12 +348,68 @@ def generar_archivo_ics(lista_partidos, nombre_archivo="partidos.ics"):
         
     print(f"¡Éxito! Archivo '{nombre_archivo}' generado correctamente.")
 
-# --- LÓGICA PRINCIPAL (Sin cambios) ---
+# --- LÓGICA PRINCIPAL (CORREGIDA) ---
 if __name__ == "__main__":
     
+    # --- Configurar driver de Selenium con MODO SIGILO ---
     options = Options()
     options.headless = True
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
-    options.
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36")
+    
+    # Opciones anti-bot estándar
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option('useAutomationExtension', False)
+    
+    # --- CORRECCIÓN: La línea 'options.' suelta ha sido eliminada ---
+    
+    driver = None
+    
+    try:
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        
+        stealth(driver,
+                languages=["en-US", "en"],
+                vendor="Google Inc.",
+                platform="Win32",
+                webgl_vendor="Intel Inc.",
+                renderer="Intel Iris OpenGL Engine",
+                fix_hairline=True,
+                )
+        
+        todos_los_eventos = []
 
+        try:
+            todos_los_eventos.extend(obtener_proximos_partidos_malaga(driver))
+        except Exception as e:
+            print(f"ERROR GRAVE al scrapear próximos Málaga: {e}")
+
+        try:
+            todos_los_eventos.extend(obtener_resultados_malaga(driver))
+        except Exception as e:
+            print(f"ERROR GRAVE al scrapear resultados Málaga: {e}")
+            
+        try:
+            todos_los_eventos.extend(obtener_proximos_partidos_unicaja(driver))
+        except Exception as e:
+            print(f"ERROR GRAVE al scrapear próximos Unicaja: {e}")
+
+        try:
+            todos_los_eventos.extend(obtener_resultados_unicaja(driver))
+        except Exception as e:
+            print(f"ERROR GRAVE al scrapear resultados Unicaja: {e}")
+
+
+        if todos_los_eventos and len(todos_los_eventos) > 0:
+            print(f"Total de eventos a generar: {len(todos_los_eventos)}")
+            generar_archivo_ics(todos_los_eventos, "partidos.ics")
+        else:
+            print("No se encontró información de ningún partido o resultado.")
+            
+    except Exception as e:
+        print(f"Ha ocurrido un error general: {e}")
+    finally:
+        if driver:
+            driver.quit()
