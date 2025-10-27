@@ -2,7 +2,7 @@ import os
 import time 
 import datetime as dt
 from datetime import datetime
-import random # <--- ¡NUEVO! Para pausas aleatorias
+import random 
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -19,7 +19,7 @@ from selenium_stealth import stealth
 TZ_MADRID = pytz.timezone('Europe/Madrid')
 ANO_ACTUAL = dt.datetime.now().year
 
-# --- FUNCIÓN 1: PRÓXIMOS MÁLAGA (CORREGIDA) ---
+# --- FUNCIÓN 1: PRÓXIMOS MÁLAGA (¡Esta ya funciona!) ---
 def traducir_fecha_malaga(fecha_es):
     traduccion = {
         'ene': 'Jan', 'feb': 'Feb', 'mar': 'Mar', 'abr': 'Apr',
@@ -66,8 +66,6 @@ def obtener_proximos_partidos_malaga(driver):
             print(f"Error al traducir fecha Málaga: {fecha_raw}")
             continue
 
-        # --- ¡NUEVO! Normalizamos la fecha quitando "de" ---
-        # "30 de Oct" -> "30 Oct". "2 Nov" -> "2 Nov".
         fecha_traducida = fecha_traducida.replace(" de ", " ")
 
         fecha_hora_str = f"{fecha_traducida} {ANO_ACTUAL} {hora_raw.replace('.', '')}"
@@ -106,10 +104,19 @@ def obtener_proximos_partidos_malaga(driver):
 def obtener_resultados_malaga(driver):
     print("Buscando resultados Málaga CF...")
     eventos = []
-    driver.get("https://www.malagacf.com/partidos?activeTab=results")
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "article.MkFootballMatchCard"))
-    )
+    driver.get("https.www.malagacf.com/partidos?activeTab=results")
+
+    # --- ¡NUEVO! Esperamos a que los MARCADORES estén visibles ---
+    try:
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "div.MkFootballMatchCard__score"))
+        )
+        print("Marcadores de resultados de Málaga cargados.")
+    except Exception as e:
+        print("No se encontraron marcadores de resultados. Saltando.")
+        return eventos # Devuelve lista vacía
+    # --- FIN DE LA ESPERA ---
+
     html = driver.page_source
     soup = BeautifulSoup(html, 'html.parser')
     partidos = soup.find_all('article', class_='MkFootballMatchCard')
@@ -122,7 +129,7 @@ def obtener_resultados_malaga(driver):
         
         score_element = partido.find('div', class_='MkFootballMatchCard__score')
         if not score_element:
-            continue
+            continue # Si, pese a todo, este no tiene marcador, lo saltamos
         
         resultado_local = score_element.find_all('span')[0].text.strip()
         resultado_visitante = score_element.find_all('span')[1].text.strip()
@@ -147,7 +154,6 @@ def obtener_resultados_malaga(driver):
         fecha_traducida = traducir_fecha_malaga(fecha_raw)
         
         if fecha_traducida:
-            # --- ¡NUEVO! Normalizamos la fecha quitando "de" ---
             fecha_traducida = fecha_traducida.replace(" de ", " ")
             fecha_str_procesada = f"{fecha_traducida} {ANO_ACTUAL} {hora_raw}"
         else:
@@ -199,10 +205,20 @@ def obtener_proximos_partidos_unicaja(driver):
     eventos = []
     driver.get("https://www.unicajabaloncesto.com/calendario")
 
-    # --- ¡NUEVO! Pausa aleatoria anti-bot ---
-    delay = random.uniform(2.5, 5.0)
-    print(f"Esperando {delay:.1f} segundos para evitar detección de bot...")
-    time.sleep(delay) 
+    # --- ¡NUEVO! Lógica para aceptar cookies ---
+    try:
+        # ID común de los botones de aceptar de CookieBot
+        cookie_button_id = "CybotCookiebotDialogBodyButtonAccept"
+        print(f"Esperando el banner de cookies ({cookie_button_id})...")
+        cookie_button = WebDriverWait(driver, 5).until(
+            EC.element_to_be_clickable((By.ID, cookie_button_id))
+        )
+        cookie_button.click()
+        print("Cookies aceptadas.")
+        time.sleep(random.uniform(1.0, 2.0)) # Pausa corta tras el clic
+    except Exception as e:
+        print(f"No se pudo hacer clic en el banner de cookies (o no se encontró): {e}")
+    # --- FIN LÓGICA DE COOKIES ---
 
     WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "div.partido"))
@@ -256,10 +272,19 @@ def obtener_resultados_unicaja(driver):
     eventos = []
     driver.get("https://www.unicajabaloncesto.com/calendario")
 
-    # --- ¡NUEVO! Pausa aleatoria anti-bot ---
-    delay = random.uniform(2.5, 5.0)
-    print(f"Esperando {delay:.1f} segundos para evitar detección de bot...")
-    time.sleep(delay)
+    # --- ¡NUEVO! Lógica para aceptar cookies ---
+    try:
+        cookie_button_id = "CybotCookiebotDialogBodyButtonAccept"
+        print(f"Esperando el banner de cookies ({cookie_button_id})...")
+        cookie_button = WebDriverWait(driver, 5).until(
+            EC.element_to_be_clickable((By.ID, cookie_button_id))
+        )
+        cookie_button.click()
+        print("Cookies aceptadas.")
+        time.sleep(random.uniform(1.0, 2.0)) # Pausa corta tras el clic
+    except Exception as e:
+        print(f"No se pudo hacer clic en el banner de cookies (o no se encontró): {e}")
+    # --- FIN LÓGICA DE COOKIES ---
 
     WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "div.partido"))
@@ -350,7 +375,6 @@ def generar_archivo_ics(lista_partidos, nombre_archivo="partidos.ics"):
 # --- LÓGICA PRINCIPAL (CORREGIDA) ---
 if __name__ == "__main__":
     
-    # --- Configurar driver de Selenium con MODO SIGILO ---
     options = Options()
     options.headless = True
     options.add_argument("--disable-gpu")
@@ -359,7 +383,6 @@ if __name__ == "__main__":
     # --- ¡NUEVO! User-Agent moderno ---
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36")
     
-    # Opciones anti-bot estándar
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
