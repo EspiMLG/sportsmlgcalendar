@@ -104,7 +104,7 @@ def obtener_proximos_partidos_malaga(driver):
 def obtener_resultados_malaga(driver):
     print("Buscando resultados Málaga CF...")
     eventos = []
-    driver.get("https.www.malagacf.com/partidos?activeTab=results")
+    driver.get("https://www.malagacf.com/partidos?activeTab=results")
 
     # --- ¡NUEVO! Esperamos a que los MARCADORES estén visibles ---
     try:
@@ -204,7 +204,22 @@ def obtener_proximos_partidos_unicaja(driver):
     print("Buscando próximos partidos Unicaja...")
     eventos = []
     driver.get("https://www.unicajabaloncesto.com/calendario")
-
+    try: 
+        iframe_id = "CybotCookiebotDialogBody"
+        cookie_button_id = "CybotCookiebotDialogBodyButtonAccept"
+        print(f"Esperando el iframe de cookies ({iframe_id})...")
+        WebDriverWait(driver, 5).until(EC.frame_to_be_available_and_switch_to_it((By.ID, iframe_id)))
+        print(f"Iframe encontrado. Buscando botón de aceptar ({cookie_button_id})...")
+        cookie_button = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.ID, cookie_button_id)))
+        cookie_button.click()
+        print("Cookies aceptadas.")
+        driver.switch_to.default_content()
+        time.sleep(random.uniform(1.0, 2.0))
+    except Exception as e:
+        print(f"No se pudo hacer clic en el banner de cookies (o no se encontró): {e}") 
+        try: driver.switch_to.default_content() 
+            except: 
+                pass
     # --- ¡NUEVO! Lógica para aceptar cookies ---
     try:
         # ID común de los botones de aceptar de CookieBot
@@ -271,7 +286,23 @@ def obtener_resultados_unicaja(driver):
     print("Buscando resultados Unicaja...")
     eventos = []
     driver.get("https://www.unicajabaloncesto.com/calendario")
-
+    try: 
+        iframe_id = "CybotCookiebotDialogBody"
+        cookie_button_id = "CybotCookiebotDialogBodyButtonAccept"
+        print(f"Esperando el iframe de cookies ({iframe_id})...")
+        WebDriverWait(driver, 5).until(EC.frame_to_be_available_and_switch_to_it((By.ID, iframe_id)))
+        print(f"Iframe encontrado. Buscando botón de aceptar ({cookie_button_id})...")
+        cookie_button = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.ID, cookie_button_id)))
+        cookie_button.click()
+        print("Cookies aceptadas.")
+        driver.switch_to.default_content()
+        time.sleep(random.uniform(1.0, 2.0))
+    except Exception as e:
+        print(f"No se pudo hacer clic en el banner de cookies (o no se encontró): {e}") 
+        try: driver.switch_to.default_content() 
+            except: 
+                pass
+                
     # --- ¡NUEVO! Lógica para aceptar cookies ---
     try:
         cookie_button_id = "CybotCookiebotDialogBodyButtonAccept"
@@ -435,3 +466,4 @@ if __name__ == "__main__":
     finally:
         if driver:
             driver.quit()
+
