@@ -132,7 +132,8 @@ def obtener_resultados_malaga(driver):
             continue # Si, pese a todo, este no tiene marcador, lo saltamos
         
         resultado_local = score_element.find('span', class_='MkFootballMatchCard__homeScore') 
-        resultado_visitante = score_element.find('span', class_='MkFootballMatchCard__awayScore') if not resultado_local or not resultado_visitante: continue # Si falta algún marcador, saltamos
+        resultado_visitante = score_element.find('span', class_='MkFootballMatchCard__awayScore') 
+        if not resultado_local or not resultado_visitante: continue # Si falta algún marcador, saltamos
         resultado_final = f"{resultado_local} - {resultado_visitante}"
 
         fecha_raw = partido.find('div', class_='MkFootballMatchCard__date').text.strip()
@@ -466,6 +467,7 @@ if __name__ == "__main__":
     finally:
         if driver:
             driver.quit()
+
 
 
 
