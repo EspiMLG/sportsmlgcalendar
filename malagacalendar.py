@@ -3,7 +3,7 @@ import time
 import datetime as dt
 from datetime import datetime
 import random
-import locale # <-- ¡NUEVO! Para forzar el idioma en fechas
+# No importamos locale
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -16,45 +16,66 @@ import pytz
 from icalendar import Calendar, Event
 from selenium_stealth import stealth
 
-# --- ZONA HORARIA ---
+# --- ZONA HORARIA Y LÓGICA DE TEMPORADA ---
 TZ_MADRID = pytz.timezone('Europe/Madrid')
 ANO_ACTUAL = dt.datetime.now().year
+MES_ACTUAL = dt.datetime.now().month
 
-# --- FUNCIÓN 1: PRÓXIMOS MÁLAGA (¡Esta ya funciona!) ---
+# Asumimos que la temporada empieza en Agosto (mes 8)
+MES_INICIO_TEMPORADA = 8
+ANO_INICIO_TEMPORADA = ANO_ACTUAL
+# Si estamos en Ene-Jul (MES_ACTUAL < 8), la temporada actual empezó el AÑO PASADO
+if MES_ACTUAL < MES_INICIO_TEMPORADA:
+    ANO_INICIO_TEMPORADA = ANO_ACTUAL - 1
+# Fecha de corte: 1 de Agosto del año que empezó la temporada
+FECHA_INICIO_TEMPORADA = dt.datetime(ANO_INICIO_TEMPORADA, MES_INICIO_TEMPORADA, 1)
+print(f"INFO: Filtrando resultados de ambas webs anteriores al {FECHA_INICIO_TEMPORADA.strftime('%Y-%m-%d')}")
+# --- FIN LÓGICA DE TEMPORADA ---
+
+
+# --- FUNCIÓN 1: PRÓXIMOS MÁLAGA (OK) ---
 def traducir_fecha_malaga(fecha_es):
-    traduccion = {
+    traduccion_a_ingles_3 = {
         'ene': 'Jan', 'feb': 'Feb', 'mar': 'Mar', 'abr': 'Apr',
-        'may': 'May', 'jun': 'Jun', 'jul': 'Jul', 'ago': 'Aug',
-        'sep': 'Sep', 'oct': 'Oct', 'nov': 'Nov', 'dic': 'Dec'
+        'may': 'May', 'jun': 'Jun', 'jul': 'Jul', 'ago': 'Aug', 'sep': 'Sep', 'sept': 'Sep',
+        'oct': 'Oct', 'nov': 'Nov', 'dic': 'Dec'
     }
-    # Corregimos traducción para 3 letras exactas requeridas por %b
-    traduccion_3_letras = {
-        'ene': 'Jan', 'feb': 'Feb', 'mar': 'Mar', 'abr': 'Apr',
-        'may': 'May', 'jun': 'Jun', 'jul': 'Jul', 'ago': 'Aug',
-        'sep': 'Sep', 'oct': 'Oct', 'nov': 'Nov', 'dic': 'Dec'
-    }
-    fecha_es_limpia = fecha_es.lower().replace('.', '')
-    for mes_es, mes_en in traduccion.items():
-        if mes_es in fecha_es_limpia:
-            # Usamos el diccionario de 3 letras para el reemplazo final
-            return fecha_es_limpia.replace(mes_es, traduccion_3_letras[mes_es])
-    return None
+    fecha_es_limpia = fecha_es.lower().replace('.', '').replace(' de ', ' ')
+    partes = fecha_es_limpia.split(' ')
+    if len(partes) < 2: return None
+    dia = partes[0]
+    mes_es = partes[1]
+    if mes_es in traduccion_a_ingles_3:
+        mes_en_3 = traduccion_a_ingles_3[mes_es]
+        return f"{dia} {mes_en_3}"
+    else: return None
 
 def obtener_proximos_partidos_malaga(driver):
-    print("Buscando próximos partidos Málaga CF...")
+    print("Buscando próximos partidos Málaga CF (web oficial)...")
     eventos = []
     try:
         driver.get("https://www.malagacf.com/partidos")
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "article.MkFootballMatchCard"))
-        )
+        clicks_ver_mas = 0
+        while clicks_ver_mas < 5:
+            try:
+                WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, "article.MkFootballMatchCard")))
+                ver_mas_span = WebDriverWait(driver, 2).until(EC.visibility_of_element_located((By.XPATH, "//span[contains(@class, 'sc-') and contains(text(), 'Ver más')]")))
+                load_more_button = ver_mas_span.find_element(By.XPATH, "./ancestor::button")
+                driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", load_more_button)
+                time.sleep(0.5)
+                driver.execute_script("arguments[0].click();", load_more_button)
+                time.sleep(random.uniform(2.0, 3.5))
+                clicks_ver_mas += 1
+            except Exception: break
         html = driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
         partidos = soup.find_all('article', class_='MkFootballMatchCard')
+        print(f"Total de tarjetas (próximos Málaga) encontradas tras clics: {len(partidos)}")
     except Exception as e:
-        print(f"ERROR: No se pudo cargar o encontrar la estructura inicial de próximos partidos Málaga: {e}")
+        print(f"ERROR: No se pudo cargar/encontrar estructura inicial próximos Málaga: {e}")
         return []
 
+    partidos_procesados = 0
     for partido in partidos:
         try:
             equipos = partido.find_all('span', class_='MkFootballMatchCard__teamName')
@@ -63,37 +84,28 @@ def obtener_proximos_partidos_malaga(driver):
             hora_raw = partido.find('div', class_='MkFootballMatchCard__time').text.strip() if partido.find('div', class_='MkFootballMatchCard__time') else None
             fecha_raw = partido.find('div', class_='MkFootballMatchCard__date').text.strip() if partido.find('div', class_='MkFootballMatchCard__date') else None
             estadio = partido.find('div', class_='MkFootballMatchCard__venue').text.strip() if partido.find('div', class_='MkFootballMatchCard__venue') else 'Estadio Visitante'
-            
             name = f"{equipo_local} vs {equipo_visitante}"
 
-            if not hora_raw or not fecha_raw or hora_raw == '-- : --':
-                print(f"Saltando partido (sin fecha/hora confirmada): {name}")
-                continue 
+            hora_confirmada = True
+            if not hora_raw or not fecha_raw: continue
+            if hora_raw == '-- : --':
+                hora_limpia = "03:00"; hora_confirmada = False
+            else: hora_limpia = hora_raw.replace('.', '')
 
-            if ',' in fecha_raw:
-                fecha_sin_dia = fecha_raw.split(', ')[1]
-            else:
-                fecha_sin_dia = fecha_raw
-            
-            fecha_traducida = traducir_fecha_malaga(fecha_sin_dia)
-            if not fecha_traducida:
-                print(f"Error al traducir fecha próximo Málaga: {fecha_raw}")
-                continue
+            if ',' in fecha_raw: fecha_sin_dia = fecha_raw.split(', ')[1]
+            else: fecha_sin_dia = fecha_raw
+            fecha_ingles_3_letras = traducir_fecha_malaga(fecha_sin_dia)
+            if not fecha_ingles_3_letras: continue
 
-            fecha_normalizada = fecha_traducida.replace(" de ", " ")
-            fecha_hora_str = f"{fecha_normalizada} {ANO_ACTUAL} {hora_raw.replace('.', '')}"
+            mes_partido_num = int(datetime.strptime(fecha_ingles_3_letras.split(' ')[1], '%b').strftime('%m'))
+            ano_partido = ANO_ACTUAL
+            if mes_partido_num < MES_INICIO_TEMPORADA and MES_ACTUAL >= MES_INICIO_TEMPORADA:
+                ano_partido = ANO_ACTUAL + 1
+            elif mes_partido_num >= MES_INICIO_TEMPORADA and MES_ACTUAL < MES_INICIO_TEMPORADA:
+                ano_partido = ANO_ACTUAL - 1
+
+            fecha_hora_str = f"{fecha_ingles_3_letras} {ano_partido} {hora_limpia}"
             fecha_hora_naive = None
-            
-            # Forzamos locale a inglés antes de parsear con %b
-            current_locale = locale.getlocale(locale.LC_TIME)
-            try:
-                locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')
-            except locale.Error:
-                try:
-                    locale.setlocale(locale.LC_TIME, 'C') # Fallback para entornos mínimos
-                except locale.Error:
-                    print("ADVERTENCIA: No se pudo forzar el locale a inglés. El parseo de fechas podría fallar.")
-
             try:
                 formato = '%d %b %Y %I:%M %p'
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
@@ -101,457 +113,431 @@ def obtener_proximos_partidos_malaga(driver):
                 try:
                     formato = '%d %b %Y %H:%M'
                     fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
-                except ValueError as e:
-                    print(f"Error parseando fecha próximo Málaga: {name} | String: '{fecha_hora_str}' | Error: {e}")
-                    continue
-            finally:
-                # Restauramos el locale original
-                try: locale.setlocale(locale.LC_TIME, current_locale)
-                except: pass # Ignorar si falla la restauración
-            
+                except ValueError as e: continue
+
+            fecha_partido_dt_naive = dt.datetime(fecha_hora_naive.year, fecha_hora_naive.month, fecha_hora_naive.day)
+            if fecha_partido_dt_naive < FECHA_INICIO_TEMPORADA:
+                continue
+
             fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive)
             fecha_hora_inicio = fecha_hora_local.isoformat()
             fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).isoformat()
-
             localidad = "local" if "Málaga CF" in equipo_local else "visitante"
             estadio_final = 'Estadio La Rosaleda' if localidad == 'local' else estadio
+            descripcion = "Próximo partido Málaga CF"
+            if not hora_confirmada: descripcion += " (Hora por confirmar)"
 
             eventos.append({
-                "fecha_hora_inicio": fecha_hora_inicio,
-                "fecha_hora_fin": fecha_hora_fin,
-                "estadio": estadio_final,
-                "name": name,
-                "descripcion": "Próximo partido del Málaga CF"
+                "fecha_hora_inicio": fecha_hora_inicio, "fecha_hora_fin": fecha_hora_fin,
+                "estadio": estadio_final, "name": name, "descripcion": descripcion
             })
+            partidos_procesados += 1
         except Exception as e:
             print(f"Error procesando un partido próximo de Málaga: {e}")
-            continue # Pasar al siguiente partido si uno falla
-            
-    print(f"Encontrados {len(eventos)} próximos partidos de Málaga CF.")
+            continue
+
+    print(f"Procesados {partidos_procesados} próximos partidos de Málaga CF.")
     return eventos
 
-# --- FUNCIÓN 2: RESULTADOS MÁLAGA (CORREGIDA) ---
-def obtener_resultados_malaga(driver):
-    print("Buscando resultados Málaga CF...")
+# --- FUNCIÓN 2: RESULTADOS MÁLAGA (FLASHSCORE - CORREGIDA) ---
+def obtener_resultados_malaga_flashscore(driver):
+    print("Buscando resultados Málaga CF (Resultados.com)...")
     eventos = []
+    url_flashscore = "https://www.flashscore.com/team/malaga/25tIqYiJ/results/"
     try:
-        driver.get("https://www.malagacf.com/partidos?activeTab=results")
-        # Esperamos solo a las tarjetas, no a los marcadores directamente
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "article.MkFootballMatchCard"))
-        )
-        print("Tarjetas de resultados de Málaga cargadas.")
-    except Exception as e:
-        print(f"ERROR: No se pudo cargar o encontrar la estructura inicial de resultados Málaga: {e}")
-        return []
-    
-    html = driver.page_source
-    soup = BeautifulSoup(html, 'html.parser')
-    partidos = soup.find_all('article', class_='MkFootballMatchCard')
-
-    for partido in partidos:
+        driver.get(url_flashscore)
+        print(f"Página {driver.current_url} cargada.")
         try:
-            equipos = partido.find_all('span', class_='MkFootballMatchCard__teamName')
-            equipo_local = equipos[0].text.strip() if len(equipos) > 0 else 'Desconocido'
-            equipo_visitante = equipos[1].text.strip() if len(equipos) > 1 else 'Desconocido'
+            cookie_button_id = "onetrust-accept-btn-handler"
+            xpath_accept_text = "//button[contains(translate(., 'ACDEGIKLMNOPRSTUVZ', 'acdegiklmnoprstuvz'), 'acepto') or contains(translate(., 'ACDEGIKLMNOPRSTUVZ', 'acdegiklmnoprstuvz'), 'accept')]"
+            try: cookie_button = WebDriverWait(driver, 7).until(EC.element_to_be_clickable((By.ID, cookie_button_id)))
+            except: cookie_button = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH, xpath_accept_text)))
+            driver.execute_script("arguments[0].click();", cookie_button)
+            print("Cookies Resultados.com aceptadas (o intentado).")
+            time.sleep(random.uniform(1.0, 2.0))
+        except Exception as e:
+            print(f"AVISO: No se aceptaron cookies Resultados.com: {e}")
+
+        clicks_ver_mas = 0
+        while clicks_ver_mas < 10:
+            try:
+                WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.event__match")))
+                load_more_button = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "a.event__more")))
+                driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", load_more_button)
+                time.sleep(0.5)
+                driver.execute_script("arguments[0].click();", load_more_button)
+                time.sleep(random.uniform(2.5, 4.0))
+                clicks_ver_mas += 1
+            except Exception:
+                break
+        print(f"Clics 'Ver más' realizados: {clicks_ver_mas}")
+
+        html = driver.page_source
+        soup = BeautifulSoup(html, 'html.parser')
+        partidos_flashscore = soup.select("div.event__match")
+        print(f"Total de contenedores de resultados (Resultados.com) encontrados: {len(partidos_flashscore)}")
+
+    except Exception as e:
+        print(f"ERROR: No se pudo cargar/encontrar estructura inicial Resultados.com: {e}")
+        return []
+
+    partidos_procesados = 0
+    competiciones_excluidas = ["club friendly", "amistosos de clubs", "world"]
+
+    for partido in partidos_flashscore:
+        try:
+            competition_tag = partido.select_one("span.event__title--type")
+            if competition_tag:
+                competition_name = competition_tag.text.strip().lower()
+                if any(excluded in competition_name for excluded in competiciones_excluidas):
+                    continue
+            
+            home_team_tag = partido.select_one("div.event__participant--home")
+            away_team_tag = partido.select_one("div.event__participant--away")
+            if not home_team_tag or not away_team_tag: continue
+            equipo_local = home_team_tag.text.strip()
+            equipo_visitante = away_team_tag.text.strip()
             name = f"{equipo_local} vs {equipo_visitante}"
-            
-            score_element = partido.find('div', class_='MkFootballMatchCard__result')
-            if not score_element:
-                print(f"Saltando resultado (sin elemento __result): {name}")
-                continue 
-            
-            home_score_span = score_element.find('span', class_='MkFootballMatchCard__homeScore')
-            away_score_span = score_element.find('span', class_='MkFootballMatchCard__awayScore')
-            if not home_score_span or not away_score_span:
-                print(f"Saltando resultado (sin span de marcador): {name}")
-                continue 
 
-            resultado_final = f"{home_score_span.text.strip()} - {away_score_span.text.strip()}"
+            home_score_tag = partido.select_one("span.event__score--home")
+            away_score_tag = partido.select_one("span.event__score--away")
+            if not home_score_tag or not away_score_tag or \
+               not home_score_tag.text.strip().isdigit() or not away_score_tag.text.strip().isdigit():
+                continue
+            resultado_final = f"{home_score_tag.text.strip()} - {away_score_tag.text.strip()}"
 
-            fecha_raw = partido.find('div', class_='MkFootballMatchCard__date').text.strip()
-            print(f"DEBUG MÁLAGA RESULTADOS: Fecha raw para '{name}' es: '{fecha_raw}'")
+            datetime_tag = partido.select_one("div.event__time")
+            if not datetime_tag: continue
+            datetime_text = datetime_tag.text.strip()
+
+            # --- ¡CORRECCIÓN! MANEJO DE FECHA/HORA FLEXIBLE ---
+            partes_dt = datetime_text.split(' ')
+            fecha_part = partes_dt[0].strip() # "DD.MM." o "DD.MM.YYYY"
+            hora_limpia = "12:00" # Hora por defecto si no se encuentra
+
+            if len(partes_dt) > 1 and ':' in partes_dt[1]:
+                hora_limpia = partes_dt[1].strip() # "HH:MM"
+            # else: print(f"INFO: Hora no encontrada en Flashscore para '{name}' (raw: '{datetime_text}'). Usando 12:00.") # Log reducido
             
-            hora_raw = "12:00" 
+            try:
+                partes_fecha = fecha_part.split('.')
+                dia_str = partes_fecha[0]
+                mes_num_str = partes_fecha[1]
+                mes_num = int(mes_num_str)
+
+                # --- ¡CORRECCIÓN! LÓGICA DE AÑO Y FILTRO ---
+                ano_partido = ANO_ACTUAL # Asumimos año actual por defecto
+                if len(partes_fecha) >= 3 and len(partes_fecha[2].strip()) == 4:
+                    # El año viene dado (ej: 21.12.2024), lo usamos
+                    ano_partido = int(partes_fecha[2].strip())
+                else:
+                    # El año NO viene (ej: 26.10.), lo adivinamos
+                    # Si estamos en Ene-Jul (MES<8) y el partido es Ago-Dic (MES>=8) -> Año Pasado
+                    if MES_ACTUAL < MES_INICIO_TEMPORADA and mes_num >= MES_INICIO_TEMPORADA:
+                        ano_partido = ANO_ACTUAL - 1
+                    # Si estamos en Ago-Dic (MES>=8) y el partido es Ene-Jul (MES<8) -> NO debería pasar en resultados, pero si pasa, es Año Actual
+                    # En todos los demás casos, es Año Actual
+                    
+                # Filtro de Temporada: Comparamos la fecha del partido con el inicio de la temporada
+                fecha_partido_dt_naive = dt.datetime(ano_partido, mes_num, int(dia_str))
+                if fecha_partido_dt_naive < FECHA_INICIO_TEMPORADA:
+                    # print(f"Saltando Flashscore (temp. pasada): {name} en {fecha_partido_dt_naive.date()}") # Log reducido
+                    continue # Es de la temporada pasada
+                # --- FIN FILTRO Y AÑO ---
+
+                fecha_str_procesada = f"{dia_str}.{mes_num_str}.{ano_partido} {hora_limpia}"
+                formato_esperado = '%d.%m.%Y %H:%M'
+
+            except (IndexError, ValueError):
+                 print(f"Error parseando fecha/hora Flashscore: {name} | Raw: '{datetime_text}'")
+                 continue
+
             fecha_hora_naive = None
-            
-            if ',' in fecha_raw:
-                fecha_sin_dia = fecha_raw.split(', ')[1] # Quitamos "dom, " etc.
-            else:
-                fecha_sin_dia = fecha_raw
-    
-            # 1. Quita " de " si existe ANTES de traducir
-            fecha_sin_de = fecha_sin_dia.replace(" de ", " ") # Ej: "28 sept" o "26 oct"
-    
-            # 2. Traduce el mes AHORA, asegurando 3 letras en inglés
-            fecha_ingles_3_letras = traducir_fecha_malaga(fecha_sin_de) # Ej: "28 Sep" o "26 Oct"
-    
-            if not fecha_ingles_3_letras:
-                print(f"Error FATAL al traducir fecha resultado Málaga: {name} en {fecha_raw}")
-                continue
-    
-            # 3. Construye el string final y parsea
-            fecha_str_procesada = f"{fecha_ingles_3_letras} {ANO_ACTUAL} {hora_raw}" # Ej: "28 Sep 2025 12:00"
-            formato_esperado = '%d %b %Y %H:%M'
-    
-            # No necesitamos forzar locale ahora, traducir_fecha_malaga ya nos da el mes bien
             try:
                 fecha_hora_naive = dt.datetime.strptime(fecha_str_procesada, formato_esperado)
             except ValueError as e:
-                print(f"Error FATAL al parsear fecha resultado Málaga: {name} | String: '{fecha_str_procesada}' | Error: {e}")
+                print(f"Error strptime resultado Flashscore: {name} | String: '{fecha_str_procesada}' | Error: {e}")
                 continue
 
-            try:
-                fecha_hora_naive = dt.datetime.strptime(fecha_str_procesada, formato_esperado)
-            except ValueError as e:
-                print(f"Error FATAL al parsear fecha resultado Málaga: {name} | String: '{fecha_str_procesada}' | Error: {e}")
-                continue
-            finally:
-                 # Restauramos el locale original
-                try: locale.setlocale(locale.LC_TIME, current_locale)
-                except: pass
-            
             fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive)
             fecha_hora_inicio = fecha_hora_local.isoformat()
             fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).isoformat()
 
-            localidad = "local" if "Málaga CF" in equipo_local else "visitante"
-            estadio = partido.find('div', class_='MkFootballMatchCard__venue').text.strip() if partido.find('div', class_='MkFootballMatchCard__venue') else 'Estadio Visitante'
-            estadio_final = 'Estadio La Rosaleda' if localidad == 'local' else estadio
+            localidad = "local" if equipo_local.lower() == "malaga" else ("visitante" if equipo_visitante.lower() == "malaga" else "neutral")
+            estadio_final = 'Estadio La Rosaleda' if localidad == 'local' else 'Estadio Visitante (Flashscore)'
+            descripcion = f"Resultado: {resultado_final}"
 
             eventos.append({
-                "fecha_hora_inicio": fecha_hora_inicio,
-                "fecha_hora_fin": fecha_hora_fin,
-                "estadio": estadio_final,
-                "name": name,
-                "descripcion": "Resultado partido del Málaga CF",
+                "fecha_hora_inicio": fecha_hora_inicio, "fecha_hora_fin": fecha_hora_fin,
+                "estadio": estadio_final, "name": name, "descripcion": descripcion,
                 "resultado": resultado_final
             })
+            partidos_procesados += 1
         except Exception as e:
-             print(f"Error procesando un resultado de Málaga: {e}")
-             continue # Pasar al siguiente resultado si uno falla
+             print(f"Error procesando un resultado de Flashscore: {name if 'name' in locals() else 'Partido desconocido'} | Error: {e}")
+             continue
 
-    print(f"Encontrados {len(eventos)} resultados de Málaga CF.")
+    print(f"Procesados {partidos_procesados} resultados de Málaga CF (Resultados.com).")
     return eventos
 
-
-# --- FUNCIÓN 3: PRÓXIMOS UNICAJA (CORREGIDA) ---
+# --- FUNCIÓN 3: PRÓXIMOS UNICAJA (CON HORA POR DEFECTO Y FILTRO TEMPORADA) ---
 def obtener_proximos_partidos_unicaja(driver):
     print("Buscando próximos partidos Unicaja...")
-    eventos = []
+    eventos = []; filas_partido_con_mes = []
     try:
         driver.get("https://www.unicajabaloncesto.com/calendario")
-
-        # --- Lógica de cookies más flexible ---
         try:
-            iframe_id = "CybotCookiebotDialogBody"
-            cookie_button_id = "CybotCookiebotDialogBodyButtonAccept"
-            
-            print(f"Intentando aceptar cookies (espera máx 10 seg)...")
-            WebDriverWait(driver, 10).until( # Aumentado a 10 segundos
-                EC.frame_to_be_available_and_switch_to_it((By.ID, iframe_id))
-            )
-            
-            cookie_button = WebDriverWait(driver, 5).until(
-                EC.element_to_be_clickable((By.ID, cookie_button_id))
-            )
-            cookie_button.click()
-            print("Cookies aceptadas.")
-            driver.switch_to.default_content()
+            cookie_button_id = "aceptocookies"
+            cookie_button = WebDriverWait(driver, 7).until(EC.element_to_be_clickable((By.ID, cookie_button_id)))
+            driver.execute_script("arguments[0].click();", cookie_button)
+            # print("Cookies Unicaja aceptadas.") # Log reducido
             time.sleep(random.uniform(1.0, 2.0))
-            
-        except Exception as e:
-            print(f"AVISO: No se aceptaron cookies (banner no encontrado o error): {e}")
-            try: driver.switch_to.default_content()
-            except: pass
-        # --- FIN LÓGICA DE COOKIES ---
+        except Exception: pass
 
-        # --- Comprobamos si la página cargó el contenido ---
         try:
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "div.partido"))
-            )
-            print("Contenido principal de Unicaja cargado.")
-            html = driver.page_source
-            soup = BeautifulSoup(html, 'html.parser')
-            partidos = soup.find_all('div', class_='partido')
-        except Exception as e:
-            print(f"ERROR: La página de Unicaja no cargó el contenido esperado (div.partido) tras {10} seg. Posible bloqueo anti-bot.")
-            print(f"Error detallado: {e}")
-            return [] 
-        # --- FIN DE LA COMPROBACIÓN ---
-    except Exception as e:
-        print(f"ERROR GRAVE al cargar la página de Unicaja (próximos): {e}")
-        return []
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.fila.fila_interior")))
+            # print("Contenido principal Unicaja cargado.") # Log reducido
+            html = driver.page_source; soup = BeautifulSoup(html, 'html.parser')
+            secciones_mes = soup.find_all('section', class_='contenedora_calendario')
+            meses_es_a_num = {'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04', 'mayo': '05', 'junio': '06','julio': '07', 'agosto': '08', 'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12'}
+            for seccion in secciones_mes:
+                h1_tag = seccion.find('h1', class_='titulo_principal'); mes_actual_str = h1_tag.text.strip().lower() if h1_tag else None
+                if not mes_actual_str or mes_actual_str not in meses_es_a_num: continue
+                mes_num = meses_es_a_num.get(mes_actual_str); filas = seccion.find_all('div', class_='fila_interior')
+                for fila in filas: filas_partido_con_mes.append((mes_num, fila))
+        except Exception as e: print(f"ERROR: No se pudo leer estructura Unicaja (próximos): {e}"); return []
+    except Exception as e: print(f"ERROR GRAVE al cargar página Unicaja (próximos): {e}"); return []
 
-    for partido in partidos:
+    partidos_procesados = 0
+    for mes_num, fila in filas_partido_con_mes:
         try:
-            if partido.find('div', class_='marcador_local'):
-                continue
-                
-            equipo_local = partido.find('span', class_='team_name_local').text.strip()
-            equipo_visitante = partido.find('span', class_='team_name_visitante').text.strip()
+            marcador_div = fila.find('div', class_='marcador'); es_resultado = False
+            if marcador_div:
+                resultado_link = marcador_div.find('a')
+                if resultado_link and '|' in resultado_link.text: es_resultado = True
+            if es_resultado: continue
+
+            contenedores_equipo = fila.find_all('div', class_='contenedor_logo_equipo');
+            if len(contenedores_equipo) < 2: continue
+            equipo_local_div = contenedores_equipo[0].find('div', class_='nombre_equipo'); equipo_visitante_div = contenedores_equipo[1].find('div', class_='nombre_equipo')
+            equipo_local = equipo_local_div.text.strip() if equipo_local_div and equipo_local_div.text.strip() else "Unicaja"
+            equipo_visitante = equipo_visitante_div.text.strip() if equipo_visitante_div and equipo_visitante_div.text.strip() else "Unicaja"
             name = f"{equipo_local} vs {equipo_visitante}"
 
-            fecha_raw = partido.find('span', class_='fecha').text.strip() 
-            hora_raw = partido.find('span', class_='hora').text.strip()   
-            
-            if not fecha_raw or not hora_raw or 'falta' in hora_raw.lower():
-                print(f"Saltando próximo Unicaja (sin fecha/hora confirmada): {name}")
-                continue 
+            fecha_div = fila.find('div', class_='celda prioridad-1 fecha');
+            if not fecha_div: continue
+            fecha_textos = [t.strip() for t in fecha_div.find_all(string=True) if t.strip()]
+            if len(fecha_textos) < 1: continue
+            try: dia_str = fecha_textos[0].split(' ')[1]
+            except IndexError: continue
+
+            hora_raw = fecha_textos[1] if len(fecha_textos) > 1 else None
+            hora_limpia = "03:00"; hora_confirmada = False
+            if hora_raw and ':' in hora_raw and 'falta' not in hora_raw.lower():
+                 try: hora_limpia = hora_raw.split(' ')[0]; hora_confirmada = True
+                 except: pass
+
+            ano_partido = ANO_ACTUAL
+            mes_num_int = int(mes_num)
+            if mes_num_int < MES_INICIO_TEMPORADA and MES_ACTUAL >= MES_INICIO_TEMPORADA: ano_partido = ANO_ACTUAL + 1
+            elif mes_num_int >= MES_INICIO_TEMPORADA and MES_ACTUAL < MES_INICIO_TEMPORADA: ano_partido = ANO_ACTUAL - 1
+
+            # --- FILTRO DE TEMPORADA (para próximos) ---
+            try:
+                fecha_partido_dt = dt.datetime(ano_partido, mes_num_int, int(dia_str))
+                if fecha_partido_dt < FECHA_INICIO_TEMPORADA:
+                    continue
+            except ValueError: continue
+            # --- FIN FILTRO ---
 
             try:
-                hora_limpia = hora_raw.split(' ')[0] 
-                fecha_hora_str = f"{fecha_raw} {hora_limpia}"
+                fecha_hora_str = f"{dia_str}.{mes_num}.{ano_partido} {hora_limpia}"
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, '%d.%m.%Y %H:%M')
                 fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive)
                 fecha_hora_inicio = fecha_hora_local.isoformat()
                 fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).isoformat()
-            except ValueError as e:
-                print(f"Error procesando fecha próximo Unicaja: {name} en {fecha_hora_str}")
-                continue
+            except ValueError as e: continue
 
-            lugar_raw = partido.find('span', class_='pabellon')
-            lugar = lugar_raw.text.strip() if lugar_raw else "Pabellón por confirmar"
+            lugar_raw = fila.find('span', class_='pabellon'); lugar = lugar_raw.text.strip() if lugar_raw else "Pabellón por confirmar"
+            descripcion = "Próximo partido Unicaja";
+            if not hora_confirmada: descripcion += " (Hora por confirmar)"
 
-            eventos.append({
-                "fecha_hora_inicio": fecha_hora_inicio,
-                "fecha_hora_fin": fecha_hora_fin,
-                "estadio": lugar,
-                "name": name,
-                "descripcion": "Próximo partido del Unicaja"
-            })
+            eventos.append({"fecha_hora_inicio": fecha_hora_inicio, "fecha_hora_fin": fecha_hora_fin,"estadio": lugar, "name": name, "descripcion": descripcion})
+            partidos_procesados += 1
         except Exception as e:
-            print(f"Error procesando un partido próximo de Unicaja: {e}")
+            print(f"Error procesando una fila de próximo Unicaja: {e}")
             continue
 
-    print(f"Encontrados {len(eventos)} próximos partidos de Unicaja.")
+    print(f"Procesados {partidos_procesados} próximos partidos de Unicaja.")
     return eventos
 
-# --- FUNCIÓN 4: RESULTADOS UNICAJA (CORREGIDA) ---
+# --- FUNCIÓN 4: RESULTADOS UNICAJA (CON HORA ORIGINAL Y FILTRO) ---
 def obtener_resultados_unicaja(driver):
     print("Buscando resultados Unicaja...")
-    eventos = []
+    eventos = []; filas_partido_con_mes = []
     try:
         driver.get("https://www.unicajabaloncesto.com/calendario")
-
-        # --- Lógica de cookies más flexible ---
         try:
-            iframe_id = "CybotCookiebotDialogBody"
-            cookie_button_id = "CybotCookiebotDialogBodyButtonAccept"
-            
-            print(f"Intentando aceptar cookies (espera máx 10 seg)...")
-            WebDriverWait(driver, 10).until( # Aumentado a 10 segundos
-                EC.frame_to_be_available_and_switch_to_it((By.ID, iframe_id))
-            )
-            
-            cookie_button = WebDriverWait(driver, 5).until(
-                EC.element_to_be_clickable((By.ID, cookie_button_id))
-            )
-            cookie_button.click()
-            print("Cookies aceptadas.")
-            driver.switch_to.default_content()
+            cookie_button_id = "aceptocookies"
+            cookie_button = WebDriverWait(driver, 7).until(EC.element_to_be_clickable((By.ID, cookie_button_id)))
+            driver.execute_script("arguments[0].click();", cookie_button)
             time.sleep(random.uniform(1.0, 2.0))
-            
-        except Exception as e:
-            print(f"AVISO: No se aceptaron cookies (banner no encontrado o error): {e}")
-            try: driver.switch_to.default_content()
-            except: pass
-        # --- FIN LÓGICA DE COOKIES ---
+        except Exception: pass
 
-        # --- Comprobamos si la página cargó el contenido ---
         try:
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "div.partido"))
-            )
-            print("Contenido principal de Unicaja cargado.")
-            html = driver.page_source
-            soup = BeautifulSoup(html, 'html.parser')
-            partidos = soup.find_all('div', class_='partido')
-        except Exception as e:
-            print(f"ERROR: La página de Unicaja no cargó el contenido esperado (div.partido) tras {10} seg. Posible bloqueo anti-bot.")
-            print(f"Error detallado: {e}")
-            return [] 
-        # --- FIN DE LA COMPROBACIÓN ---
-    except Exception as e:
-        print(f"ERROR GRAVE al cargar la página de Unicaja (resultados): {e}")
-        return []
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.fila.fila_interior")))
+            html = driver.page_source; soup = BeautifulSoup(html, 'html.parser')
+            secciones_mes = soup.find_all('section', class_='contenedora_calendario')
+            meses_es_a_num = {'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04', 'mayo': '05', 'junio': '06','julio': '07', 'agosto': '08', 'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12'}
+            for seccion in secciones_mes:
+                h1_tag = seccion.find('h1', class_='titulo_principal'); mes_actual_str = h1_tag.text.strip().lower() if h1_tag else None
+                if not mes_actual_str or mes_actual_str not in meses_es_a_num: continue
+                mes_num = meses_es_a_num.get(mes_actual_str); filas = seccion.find_all('div', class_='fila_interior')
+                for fila in filas: filas_partido_con_mes.append((mes_num, fila))
+        except Exception as e: print(f"ERROR: No se pudo leer estructura Unicaja (resultados): {e}"); return []
+    except Exception as e: print(f"ERROR GRAVE al cargar página Unicaja (resultados): {e}"); return []
 
-    for partido in partidos:
+    partidos_procesados = 0
+    for mes_num, fila in filas_partido_con_mes:
         try:
-            resultado_local_raw = partido.find('div', class_='marcador_local')
-            resultado_visitante_raw = partido.find('div', class_='marcador_visitante')
-            
-            if not resultado_local_raw or not resultado_visitante_raw:
-                continue # No es un resultado, es un partido futuro
-                
-            resultado_final = f"{resultado_local_raw.text.strip()} - {resultado_visitante_raw.text.strip()}"
-            
-            equipo_local = partido.find('span', class_='team_name_local').text.strip()
-            equipo_visitante = partido.find('span', class_='team_name_visitante').text.strip()
+            marcador_div = fila.find('div', class_='marcador'); es_resultado = False; resultado_final = "N/A"
+            if marcador_div:
+                resultado_link = marcador_div.find('a')
+                if resultado_link and '|' in resultado_link.text:
+                    es_resultado = True
+                    try: marcador_partes = resultado_link.text.split('|'); resultado_final = f"{marcador_partes[0].strip()} - {marcador_partes[1].strip()}"
+                    except: pass
+            if not es_resultado: continue
+
+            contenedores_equipo = fila.find_all('div', class_='contenedor_logo_equipo');
+            if len(contenedores_equipo) < 2: continue
+            equipo_local_div = contenedores_equipo[0].find('div', class_='nombre_equipo'); equipo_visitante_div = contenedores_equipo[1].find('div', class_='nombre_equipo')
+            equipo_local = equipo_local_div.text.strip() if equipo_local_div and equipo_local_div.text.strip() else "Unicaja"
+            equipo_visitante = equipo_visitante_div.text.strip() if equipo_visitante_div and equipo_visitante_div.text.strip() else "Unicaja"
             name = f"{equipo_local} vs {equipo_visitante}"
 
-            fecha_raw = partido.find('span', class_='fecha').text.strip() 
-            hora_limpia = "12:00" 
+            fecha_div = fila.find('div', class_='celda prioridad-1 fecha');
+            if not fecha_div: continue
+            fecha_textos = [t.strip() for t in fecha_div.find_all(string=True) if t.strip()]
+            if len(fecha_textos) < 1: continue
+            try: dia_str = fecha_textos[0].split(' ')[1]
+            except IndexError: continue
+
+            hora_raw = fecha_textos[1] if len(fecha_textos) > 1 else None; hora_limpia = "12:00" # Fallback
+            if hora_raw and ':' in hora_raw and 'falta' not in hora_raw.lower():
+                 try: hora_limpia = hora_raw.split(' ')[0]
+                 except: pass
+
+            ano_partido = ANO_ACTUAL
+            mes_num_int = int(mes_num)
+            if mes_num_int < MES_INICIO_TEMPORADA and MES_ACTUAL >= MES_INICIO_TEMPORADA: ano_partido = ANO_ACTUAL + 1
+            elif mes_num_int >= MES_INICIO_TEMPORADA and MES_ACTUAL < MES_INICIO_TEMPORADA: ano_partido = ANO_ACTUAL - 1
+            
+            # --- ¡NUEVO! FILTRO DE TEMPORADA ---
+            try:
+                fecha_partido_dt = dt.datetime(ano_partido, mes_num_int, int(dia_str))
+                if fecha_partido_dt < FECHA_INICIO_TEMPORADA:
+                    continue
+            except ValueError: continue
+            # --- FIN FILTRO ---
+
+            fecha_raw_completa = f"{dia_str}.{mes_num}.{ano_partido}"
 
             try:
-                fecha_hora_str = f"{fecha_raw} {hora_limpia}"
+                fecha_hora_str = f"{fecha_raw_completa} {hora_limpia}"
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, '%d.%m.%Y %H:%M')
                 fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive)
                 fecha_hora_inicio = fecha_hora_local.isoformat()
                 fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).isoformat()
-            except ValueError as e:
-                print(f"Error procesando fecha resultado Unicaja: {name} en {fecha_hora_str}")
-                continue
+            except ValueError as e: continue
 
-            lugar_raw = partido.find('span', class_='pabellon')
-            lugar = lugar_raw.text.strip() if lugar_raw else "Pabellón"
+            lugar_raw = fila.find('span', class_='pabellon'); lugar = lugar_raw.text.strip() if lugar_raw else "Pabellón (Resultado)"
+            descripcion = f"Resultado Unicaja: {resultado_final}"
 
             eventos.append({
-                "fecha_hora_inicio": fecha_hora_inicio,
-                "fecha_hora_fin": fecha_hora_fin,
-                "estadio": lugar,
-                "name": name,
-                "descripcion": "Resultado partido del Unicaja",
-                "resultado": resultado_final
+                "fecha_hora_inicio": fecha_hora_inicio, "fecha_hora_fin": fecha_hora_fin,
+                "estadio": lugar, "name": name, "descripcion": descripcion, "resultado": resultado_final
             })
+            partidos_procesados += 1
         except Exception as e:
-            print(f"Error procesando un resultado de Unicaja: {e}")
+            print(f"Error procesando una fila de resultado Unicaja: {e}")
             continue
-        
-    print(f"Encontrados {len(eventos)} resultados de Unicaja.")
+
+    print(f"Procesados {partidos_procesados} resultados de Unicaja.")
     return eventos
 
 
-# --- FUNCIÓN GENERAR ICS (Sin cambios significativos) ---
+# --- FUNCIÓN GENERAR ICS (Actualizada descripción y UID base) ---
 def generar_archivo_ics(lista_partidos, nombre_archivo="partidos.ics"):
-    cal = Calendar()
-    cal.add('prodid', '-//SportsMLGCalendar//espi.mlg//ES')
-    cal.add('version', '2.0')
-    cal.add('calscale', 'GREGORIAN')
-    cal.add('X-WR-CALNAME', 'Calendario Málaga CF y Unicaja')
+    cal = Calendar(); cal.add('prodid', '-//SportsMLGCalendar//espi.mlg//ES'); cal.add('version', '2.0')
+    cal.add('calscale', 'GREGORIAN'); cal.add('X-WR-CALNAME', 'Calendario Málaga CF y Unicaja')
     cal.add('X-WR-TIMEZONE', 'Europe/Madrid')
-
-    print(f"Generando {len(lista_partidos)} eventos totales (partidos y resultados) para {nombre_archivo}...")
-
-    eventos_validos = 0
+    print(f"Generando {len(lista_partidos)} eventos totales para {nombre_archivo}...")
+    eventos_validos = 0; ids_unicos = set()
     for partido in lista_partidos:
-        try: # Añadido try/except por si algún dato del partido es inválido
-            evento = Event()
-            
-            titulo = partido['name']
-            if 'resultado' in partido and partido['resultado']:
-                titulo = f"{partido['name']} ({partido['resultado']})"
-            
-            # Comprobar si las fechas son strings antes de parsear
-            if not isinstance(partido.get('fecha_hora_inicio'), str) or not isinstance(partido.get('fecha_hora_fin'), str):
-                print(f"ADVERTENCIA: Saltando evento con fechas inválidas: {titulo}")
-                continue
-
-            dt_inicio = datetime.fromisoformat(partido['fecha_hora_inicio'])
-            dt_fin = datetime.fromisoformat(partido['fecha_hora_fin'])
-
-            evento.add('summary', titulo) 
-            evento.add('dtstart', dt_inicio)
-            evento.add('dtend', dt_fin)
-            evento.add('dtstamp', datetime.now(tz=pytz.utc))
-            evento.add('location', partido.get('estadio', 'Lugar no especificado')) # Usar .get() por seguridad
-            evento.add('description', partido.get('descripcion', '')) # Usar .get() por seguridad
-            
-            uid = f"{partido['fecha_hora_inicio']}-{partido['name'].replace(' ', '')}@sportsmlg.com"
-            evento.add('uid', uid)
-            cal.add_component(evento)
-            eventos_validos += 1
-        except Exception as e:
-            print(f"ERROR al generar evento para {partido.get('name', 'Partido Desconocido')}: {e}")
-            continue
-
-    if eventos_validos > 0:
-        with open(nombre_archivo, 'wb') as f:
-            f.write(cal.to_ical())
-        print(f"¡Éxito! Archivo '{nombre_archivo}' generado con {eventos_validos} eventos.")
-    else:
-        print("No se generó ningún evento válido.")
-
-
-# --- LÓGICA PRINCIPAL (Sin cambios significativos) ---
-if __name__ == "__main__":
-    
-    options = Options()
-    options.headless = True
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--window-size=1920,1080") # Tamaño de ventana más común
-    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36")
-    options.add_argument("--disable-blink-features=AutomationControlled")
-    options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    options.add_experimental_option('useAutomationExtension', False)
-        
-    driver = None
-    
-    try:
-        # Intenta instalar/usar el driver
         try:
-             driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+            evento = Event(); titulo = partido['name']; descripcion = partido.get('descripcion', '')
+            if 'resultado' in partido and partido['resultado'] and partido['resultado'] != "N/A":
+                titulo = f"{partido['name']} ({partido['resultado']})"
+                if "Próximo partido" in descripcion: descripcion = descripcion.replace("Próximo partido", "Resultado")
+            if not isinstance(partido.get('fecha_hora_inicio'), str) or not isinstance(partido.get('fecha_hora_fin'), str): continue
+            dt_inicio = datetime.fromisoformat(partido['fecha_hora_inicio']); dt_fin = datetime.fromisoformat(partido['fecha_hora_fin'])
+            fecha_inicio_str = dt_inicio.strftime('%Y%m%d'); uid_base = f"{fecha_inicio_str}-{partido['name'].replace(' ', '')}"
+            uid = f"{uid_base}@sportsmlg.com"
+            if uid_base in ids_unicos: continue
+            ids_unicos.add(uid_base)
+            evento.add('summary', titulo); evento.add('dtstart', dt_inicio); evento.add('dtend', dt_fin)
+            evento.add('dtstamp', datetime.now(tz=pytz.utc)); evento.add('location', partido.get('estadio', 'Lugar no especificado'))
+            evento.add('description', descripcion); evento.add('uid', uid); cal.add_component(evento)
+            eventos_validos += 1
+        except Exception as e: print(f"ERROR al generar evento para {partido.get('name', 'Partido Desconocido')}: {e}"); continue
+    if eventos_validos > 0:
+        with open(nombre_archivo, 'wb') as f: f.write(cal.to_ical())
+        print(f"¡ÉXITO! Archivo '{nombre_archivo}' generado con {eventos_validos} eventos.")
+    else:
+        print("No se generó ningún evento válido. Creando archivo .ics vacío.")
+        cal = Calendar(); cal.add('prodid', '-//SportsMLGCalendar//espi.mlg//ES'); cal.add('version', '2.0')
+        with open(nombre_archivo, 'wb') as f: f.write(cal.to_ical())
+
+# --- LÓGICA PRINCIPAL (Llama a función Flashscore para resultados Málaga) ---
+if __name__ == "__main__":
+    options = Options(); options.headless = True
+    options.add_argument("--disable-gpu"); options.add_argument("--no-sandbox"); options.add_argument("--window-size=1920,1080")
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
+    options.add_argument("--disable-blink-features=AutomationControlled"); options.add_experimental_option("excludeSwitches", ["enable-automation"]); options.add_experimental_option('useAutomationExtension', False)
+    driver = None
+    try:
+        try:
+             driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options); print("ChromeDriver iniciado.")
         except Exception as driver_error:
-             print(f"ERROR CRÍTICO al iniciar ChromeDriver: {driver_error}")
-             # Intentar fallback si falla la instalación automática (requiere chromedriver en PATH)
-             try:
-                 print("Intentando usar ChromeDriver desde el PATH...")
-                 driver = webdriver.Chrome(options=options)
-             except Exception as fallback_error:
-                 print(f"ERROR CRÍTICO: Falló también al usar ChromeDriver desde el PATH: {fallback_error}")
-                 exit(1) # Salir si no se puede iniciar el driver
-
-        # Aplicar stealth si el driver se inició correctamente
+             print(f"ERROR CRÍTICO ChromeDriver: {driver_error}")
+             try: print("Intentando fallback ChromeDriver..."); driver = webdriver.Chrome(options=options); print("Fallback ChromeDriver OK.")
+             except Exception as fallback_error: print(f"ERROR CRÍTICO Fallback: {fallback_error}"); driver = None
         if driver:
-            stealth(driver,
-                    languages=["en-US", "en"],
-                    vendor="Google Inc.",
-                    platform="Win32",
-                    webgl_vendor="Intel Inc.",
-                    renderer="Intel Iris OpenGL Engine",
-                    fix_hairline=True,
-                    )
-            
+            try:
+                stealth(driver, languages=["en-US", "en"], vendor="Google Inc.", platform="Win32", webgl_vendor="Intel Inc.", renderer="Intel Iris OpenGL Engine", fix_hairline=True); print("Stealth aplicado.")
+            except Exception as stealth_error: print(f"ADVERTENCIA Stealth: {stealth_error}")
             todos_los_eventos = []
-            
-            # --- Ejecutar scrapes ---
-            try:
-                todos_los_eventos.extend(obtener_proximos_partidos_malaga(driver))
-            except Exception as e:
-                print(f"ERROR GRAVE al scrapear próximos Málaga: {e}")
-
-            try:
-                todos_los_eventos.extend(obtener_resultados_malaga(driver))
-            except Exception as e:
-                print(f"ERROR GRAVE al scrapear resultados Málaga: {e}")
-                
-            try:
-                todos_los_eventos.extend(obtener_proximos_partidos_unicaja(driver))
-            except Exception as e:
-                print(f"ERROR GRAVE al scrapear próximos Unicaja: {e}")
-
-            try:
-                todos_los_eventos.extend(obtener_resultados_unicaja(driver))
-            except Exception as e:
-                print(f"ERROR GRAVE al scrapear resultados Unicaja: {e}")
-            
-            # --- Generar ICS ---
-            if todos_los_eventos and len(todos_los_eventos) > 0:
-                print(f"Total de eventos encontrados: {len(todos_los_eventos)}")
-                generar_archivo_ics(todos_los_eventos, "partidos.ics")
-            else:
-                print("No se encontró información de ningún partido o resultado para generar el ICS.")
-        
-    except Exception as e:
-        print(f"Ha ocurrido un error general no recuperable: {e}")
+            print("\n--- Iniciando scrape de Málaga ---")
+            try: todos_los_eventos.extend(obtener_proximos_partidos_malaga(driver))
+            except Exception as e: print(f"ERROR GRAVE scrape próximos Málaga: {e}")
+            try: todos_los_eventos.extend(obtener_resultados_malaga_flashscore(driver)) # <--- LLAMA A FLASHSCORE
+            except Exception as e: print(f"ERROR GRAVE scrape resultados Málaga (Flashscore): {e}")
+            print("--- Fin scrape de Málaga ---")
+            print("\n--- Iniciando scrape de Unicaja ---")
+            try: todos_los_eventos.extend(obtener_proximos_partidos_unicaja(driver))
+            except Exception as e: print(f"ERROR GRAVE scrape próximos Unicaja: {e}")
+            try: todos_los_eventos.extend(obtener_resultados_unicaja(driver))
+            except Exception as e: print(f"ERROR GRAVE scrape resultados Unicaja: {e}")
+            print("--- Fin scrape de Unicaja ---")
+            print("\n--- Iniciando generación de ICS ---")
+            if todos_los_eventos: print(f"Total de eventos encontrados: {len(todos_los_eventos)}")
+            else: print("No se encontró info para generar el ICS.")
+            generar_archivo_ics(todos_los_eventos, "partidos.ics")
+            print("--- Fin generación de ICS ---")
+    except Exception as e: print(f"Error general no recuperable: {e}")
     finally:
-        # Asegurarse de cerrar el driver si existe
         if driver:
-            try:
-                driver.quit()
-                print("Driver cerrado correctamente.")
-            except Exception as quit_error:
-                print(f"Error al cerrar el driver: {quit_error}")
-
+            try: driver.quit(); print("Driver cerrado.")
+            except Exception as quit_error: print(f"Error al cerrar driver: {quit_error}")
+        else: print("Driver no iniciado.")
