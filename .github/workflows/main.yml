@@ -26,7 +26,7 @@ jobs:
       run: |
         sudo apt-get update
         # Se ha eliminado libgconf-2-4 de la siguiente línea
-        sudo apt-get install -y wget unzip xvfb libxi6
+        sudo apt-get install -y wget unzip xvfb libxi6 tzdata        
         wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
         sudo dpkg -i google-chrome-stable_current_amd64.deb
         sudo apt-get -fy install
