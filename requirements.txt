@@ -4,3 +4,4 @@ selenium
 webdriver_manager
 pytz
 icalendar
+selenium-stealth
