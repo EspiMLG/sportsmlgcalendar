@@ -1,22 +1,18 @@
 # Base image
-FROM mcr.microsoft.com/vscode/devcontainers/python:3.10
+FROM mcr.microsoft.com/vscode/devcontainers/python:3.10 [cite: 11]
 
-# Install necessary packages
+# Instalar dependencias del SO y Google Chrome en una sola capa
+# Eliminamos curl y unzip, ya que webdriver_manager gestiona chromedriver
 RUN apt-get update && apt-get install -y \
     wget \
-    unzip \
-    curl \
     xvfb \
     libxi6 \
-    libgconf-2-4 \
+    --no-install-recommends \
+    && wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+    && dpkg -i google-chrome-stable_current_amd64.deb; \
+    apt-get -fy install \
+    && rm google-chrome-stable_current_amd64.deb \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Google Chrome
-RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
-    && dpkg -i google-chrome-stable_current_amd64.deb; apt-get -fy install
-
-# Install ChromeDriver
-RUN CHROME_DRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` \
-    && wget -q https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip \
-    && unzip chromedriver_linux64.zip -d /usr/local/bin/ \
-    && rm chromedriver_linux64.zip
+# Nota: No instalamos chromedriver manualmente.
+# webdriver_manager lo hará cuando ejecutes el script.
