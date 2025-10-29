@@ -3,7 +3,15 @@ import time
 import datetime as dt
 from datetime import datetime
 import random
-# No importamos locale
+# from zoneinfo import ZoneInfo # Importación nativa de Python 3.9+
+# Como GitHub Actions usa Python 3.12, esto funcionará.
+# Si diera problemas, se puede instalar 'tzdata' con pip
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    # Fallback para entornos más antiguos si fuera necesario (aunque 3.12 lo tiene)
+    from backports.zoneinfo import ZoneInfo
+
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -12,12 +20,13 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import pytz
+import pytz # <-- Mantenemos pytz SOLO para dtstamp UTC
 from icalendar import Calendar, Event
 from selenium_stealth import stealth
 
 # --- ZONA HORARIA Y LÓGICA DE TEMPORADA ---
-TZ_MADRID = pytz.timezone('Europe/Madrid') # Zona horaria correcta
+# ¡NUEVO! Usamos ZoneInfo nativo, es más fiable que pytz para localizar
+TZ_MADRID = ZoneInfo("Europe/Madrid")
 ANO_ACTUAL = dt.datetime.now().year
 MES_ACTUAL = dt.datetime.now().month
 
@@ -28,39 +37,6 @@ if MES_ACTUAL < MES_INICIO_TEMPORADA:
 FECHA_INICIO_TEMPORADA = dt.datetime(ANO_INICIO_TEMPORADA, MES_INICIO_TEMPORADA, 1)
 print(f"INFO: Filtrando resultados de ambas webs anteriores al {FECHA_INICIO_TEMPORADA.strftime('%Y-%m-%d')}")
 # --- FIN LÓGICA DE TEMPORADA ---
-
-# --- ¡NUEVA FUNCIÓN DE AYUDA PARA ZONA HORARIA! ---
-def crear_fecha_correcta_madrid(fecha_hora_naive):
-    """
-    Toma un datetime 'naive' (sin zona) que representa la hora local de Madrid
-    y lo convierte a un datetime con zona horaria correcta, manejando DST
-    de forma manual para evitar bugs de localize() en el servidor.
-    """
-    # 1. Averiguamos si esta fecha/hora "naive" cae en horario de verano de Madrid
-    # .dst() nos da el offset del DST (ej: 1 hora o 0 horas)
-    try:
-        offset_dst = TZ_MADRID.dst(fecha_hora_naive)
-    except (pytz.NonExistentTimeError, pytz.AmbiguousTimeError):
-        # Si cae justo en el cambio de hora, usamos is_dst=False (invierno) como fallback
-        offset_dst = dt.timedelta(hours=0) 
-
-    if offset_dst:
-        # Es horario de verano (UTC+2)
-        offset_timedelta = dt.timedelta(hours=2)
-    else:
-        # Es horario de invierno (UTC+1)
-        offset_timedelta = dt.timedelta(hours=1)
-    
-    # 3. Creamos un objeto de zona horaria FIJO con ese offset
-    # pytz.FixedOffset toma minutos
-    offset_correcto = pytz.FixedOffset(offset_timedelta.total_seconds() / 60) 
-
-    # 4. Adjuntamos la zona horaria fija a la fecha naive.
-    # Esto NO hace conversión, solo "pega" el offset.
-    fecha_hora_con_tz = fecha_hora_naive.replace(tzinfo=offset_correcto)
-    
-    return fecha_hora_con_tz
-# --- FIN NUEVA FUNCIÓN ---
 
 
 # --- FUNCIÓN 1: PRÓXIMOS MÁLAGA ---
@@ -149,8 +125,9 @@ def obtener_proximos_partidos_malaga(driver):
             if fecha_partido_dt_naive < FECHA_INICIO_TEMPORADA:
                 continue
 
-            # --- ¡USANDO NUEVA FUNCIÓN DE ZONA HORARIA! ---
-            fecha_hora_con_tz = crear_fecha_correcta_madrid(fecha_hora_naive)
+            # --- ¡NUEVA CORRECCIÓN DE ZONA HORARIA! ---
+            # Adjuntamos la zona horaria de Madrid. 'astimezone' maneja DST correctamente.
+            fecha_hora_con_tz = fecha_hora_naive.astimezone(TZ_MADRID)
             # --- FIN CORRECCIÓN ---
 
             fecha_hora_inicio = fecha_hora_con_tz.isoformat()
@@ -280,8 +257,8 @@ def obtener_resultados_malaga_flashscore(driver):
                 print(f"Error strptime resultado Flashscore: {name} | String: '{fecha_str_procesada}' | Error: {e}")
                 continue
 
-            # --- ¡USANDO NUEVA FUNCIÓN DE ZONA HORARIA! ---
-            fecha_hora_con_tz = crear_fecha_correcta_madrid(fecha_hora_naive)
+            # --- ¡NUEVA CORRECCIÓN DE ZONA HORARIA! ---
+            fecha_hora_con_tz = fecha_hora_naive.astimezone(TZ_MADRID)
             # --- FIN CORRECCIÓN ---
 
             fecha_hora_inicio = fecha_hora_con_tz.isoformat()
@@ -374,8 +351,8 @@ def obtener_proximos_partidos_unicaja(driver):
                 fecha_hora_str = f"{dia_str}.{mes_num}.{ano_partido} {hora_limpia}"
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, '%d.%m.%Y %H:%M')
                 
-                # --- ¡USANDO NUEVA FUNCIÓN DE ZONA HORARIA! ---
-                fecha_hora_con_tz = crear_fecha_correcta_madrid(fecha_hora_naive)
+                # --- ¡NUEVA CORRECCIÓN DE ZONA HORARIA! ---
+                fecha_hora_con_tz = fecha_hora_naive.astimezone(TZ_MADRID)
                 # --- FIN CORRECCIÓN ---
 
                 fecha_hora_inicio = fecha_hora_con_tz.isoformat()
@@ -469,8 +446,8 @@ def obtener_resultados_unicaja(driver):
                 fecha_hora_str = f"{fecha_raw_completa} {hora_limpia}"
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, '%d.%m.%Y %H:%M')
                 
-                # --- ¡USANDO NUEVA FUNCIÓN DE ZONA HORARIA! ---
-                fecha_hora_con_tz = crear_fecha_correcta_madrid(fecha_hora_naive)
+                # --- ¡NUEVA CORRECCIÓN DE ZONA HORARIA! ---
+                fecha_hora_con_tz = fecha_hora_naive.astimezone(TZ_MADRID)
                 # --- FIN CORRECCIÓN ---
 
                 fecha_hora_inicio = fecha_hora_con_tz.isoformat()
@@ -516,14 +493,11 @@ def generar_archivo_ics(lista_partidos, nombre_archivo="partidos.ics"):
             if uid_base in ids_unicos: continue
             ids_unicos.add(uid_base)
             
-            # --- ¡CORRECCIÓN DE ZONA HORARIA! ---
-            # No añadimos TZID, icalendar lo manejará basado en el objeto datetime con tz
             evento.add('summary', titulo)
             evento.add('dtstart', dt_inicio) # dt_inicio ya tiene la info de timezone
             evento.add('dtend', dt_fin)       # dt_fin ya tiene la info de timezone
-            # --- FIN CORRECCIÓN ---
-
-            evento.add('dtstamp', datetime.now(pytz.utc)); evento.add('location', partido.get('estadio', 'Lugar no especificado'))
+            evento.add('dtstamp', datetime.now(pytz.utc)) # Usamos UTC para dtstamp
+            evento.add('location', partido.get('estadio', 'Lugar no especificado'))
             evento.add('description', descripcion); evento.add('uid', uid); cal.add_component(evento)
             eventos_validos += 1
         except Exception as e: print(f"ERROR al generar evento para {partido.get('name', 'Partido Desconocido')}: {e}"); continue
