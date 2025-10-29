@@ -17,23 +17,46 @@ from icalendar import Calendar, Event
 from selenium_stealth import stealth
 
 # --- ZONA HORARIA Y LÓGICA DE TEMPORADA ---
-TZ_MADRID = pytz.timezone('Europe/Madrid')
+TZ_MADRID = pytz.timezone('Europe/Madrid') # Zona horaria correcta
 ANO_ACTUAL = dt.datetime.now().year
 MES_ACTUAL = dt.datetime.now().month
 
-# Asumimos que la temporada empieza en Agosto (mes 8)
 MES_INICIO_TEMPORADA = 8
 ANO_INICIO_TEMPORADA = ANO_ACTUAL
-# Si estamos en Ene-Jul (MES_ACTUAL < 8), la temporada actual empezó el AÑO PASADO
 if MES_ACTUAL < MES_INICIO_TEMPORADA:
     ANO_INICIO_TEMPORADA = ANO_ACTUAL - 1
-# Fecha de corte: 1 de Agosto del año que empezó la temporada
 FECHA_INICIO_TEMPORADA = dt.datetime(ANO_INICIO_TEMPORADA, MES_INICIO_TEMPORADA, 1)
 print(f"INFO: Filtrando resultados de ambas webs anteriores al {FECHA_INICIO_TEMPORADA.strftime('%Y-%m-%d')}")
 # --- FIN LÓGICA DE TEMPORADA ---
 
+# --- FUNCIÓN DE AYUDA PARA ZONA HORARIA ---
+def crear_fecha_correcta_madrid(fecha_hora_naive):
+    """
+    Toma un datetime 'naive' (sin zona) que representa la hora local de Madrid
+    y lo convierte a un datetime con zona horaria correcta, manejando DST.
+    """
+    # NO USAMOS localize(naive, is_dst=None) porque falla en GitHub Actions
+    # Método alternativo:
+    # 1. Creamos la fecha como si fuera UTC
+    fecha_utc = pytz.utc.localize(fecha_hora_naive)
+    # 2. La convertimos a la zona horaria de Madrid
+    fecha_madrid = fecha_utc.astimezone(TZ_MADRID)
+    # 3. Pytz puede equivocarse en la conversión si la hora es ambigua
+    # (ej. la 1:30 AM del día del cambio de hora).
+    # Comprobamos si el offset resultante es el que debería ser.
+    
+    # Solución más simple y robusta:
+    # Asumimos que la fecha naive ES la hora de Madrid.
+    # Le quitamos la info de zona (si la tuviera) y la "forzamos" a Madrid
+    fecha_sin_tz = fecha_hora_naive.replace(tzinfo=None)
+    # Usamos localize() PERO le decimos que NO ES ambigua (is_dst=None falla)
+    # La forma correcta es averiguar si DST está activo en esa fecha
+    es_dst = bool(TZ_MADRID.dst(fecha_sin_tz))
+    fecha_hora_con_tz = TZ_MADRID.localize(fecha_sin_tz, is_dst=es_dst)
+    return fecha_hora_con_tz
 
-# --- FUNCIÓN 1: PRÓXIMOS MÁLAGA (OK) ---
+
+# --- FUNCIÓN 1: PRÓXIMOS MÁLAGA ---
 def traducir_fecha_malaga(fecha_es):
     traduccion_a_ingles_3 = {
         'ene': 'Jan', 'feb': 'Feb', 'mar': 'Mar', 'abr': 'Apr',
@@ -119,9 +142,12 @@ def obtener_proximos_partidos_malaga(driver):
             if fecha_partido_dt_naive < FECHA_INICIO_TEMPORADA:
                 continue
 
-            fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive, is_dst=None)
-            fecha_hora_inicio = fecha_hora_local.isoformat()
-            fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).isoformat()
+            # --- ¡CORRECCIÓN DE ZONA HORARIA! ---
+            fecha_hora_con_tz = crear_fecha_correcta_madrid(fecha_hora_naive)
+            # --- FIN CORRECCIÓN ---
+
+            fecha_hora_inicio = fecha_hora_con_tz.isoformat()
+            fecha_hora_fin = (fecha_hora_con_tz + dt.timedelta(hours=2)).isoformat()
             localidad = "local" if "Málaga CF" in equipo_local else "visitante"
             estadio_final = 'Estadio La Rosaleda' if localidad == 'local' else estadio
             descripcion = "Próximo partido Málaga CF"
@@ -210,14 +236,11 @@ def obtener_resultados_malaga_flashscore(driver):
             if not datetime_tag: continue
             datetime_text = datetime_tag.text.strip()
 
-            # --- ¡CORRECCIÓN! MANEJO DE FECHA/HORA FLEXIBLE ---
             partes_dt = datetime_text.split(' ')
-            fecha_part = partes_dt[0].strip() # "DD.MM." o "DD.MM.YYYY"
-            hora_limpia = "12:00" # Hora por defecto si no se encuentra
-
+            fecha_part = partes_dt[0].strip()
+            hora_limpia = "12:00"
             if len(partes_dt) > 1 and ':' in partes_dt[1]:
-                hora_limpia = partes_dt[1].strip() # "HH:MM"
-            # else: print(f"INFO: Hora no encontrada en Flashscore para '{name}' (raw: '{datetime_text}'). Usando 12:00.") # Log reducido
+                hora_limpia = partes_dt[1].strip()
             
             try:
                 partes_fecha = fecha_part.split('.')
@@ -225,25 +248,16 @@ def obtener_resultados_malaga_flashscore(driver):
                 mes_num_str = partes_fecha[1]
                 mes_num = int(mes_num_str)
 
-                # --- ¡CORRECCIÓN! LÓGICA DE AÑO Y FILTRO ---
-                ano_partido = ANO_ACTUAL # Asumimos año actual por defecto
+                ano_partido = ANO_ACTUAL
                 if len(partes_fecha) >= 3 and len(partes_fecha[2].strip()) == 4:
-                    # El año viene dado (ej: 21.12.2024), lo usamos
                     ano_partido = int(partes_fecha[2].strip())
                 else:
-                    # El año NO viene (ej: 26.10.), lo adivinamos
-                    # Si estamos en Ene-Jul (MES<8) y el partido es Ago-Dic (MES>=8) -> Año Pasado
                     if MES_ACTUAL < MES_INICIO_TEMPORADA and mes_num >= MES_INICIO_TEMPORADA:
                         ano_partido = ANO_ACTUAL - 1
-                    # Si estamos en Ago-Dic (MES>=8) y el partido es Ene-Jul (MES<8) -> NO debería pasar en resultados, pero si pasa, es Año Actual
-                    # En todos los demás casos, es Año Actual
                     
-                # Filtro de Temporada: Comparamos la fecha del partido con el inicio de la temporada
                 fecha_partido_dt_naive = dt.datetime(ano_partido, mes_num, int(dia_str))
                 if fecha_partido_dt_naive < FECHA_INICIO_TEMPORADA:
-                    # print(f"Saltando Flashscore (temp. pasada): {name} en {fecha_partido_dt_naive.date()}") # Log reducido
-                    continue # Es de la temporada pasada
-                # --- FIN FILTRO Y AÑO ---
+                    continue
 
                 fecha_str_procesada = f"{dia_str}.{mes_num_str}.{ano_partido} {hora_limpia}"
                 formato_esperado = '%d.%m.%Y %H:%M'
@@ -259,9 +273,12 @@ def obtener_resultados_malaga_flashscore(driver):
                 print(f"Error strptime resultado Flashscore: {name} | String: '{fecha_str_procesada}' | Error: {e}")
                 continue
 
-            fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive, is_dst=None)
-            fecha_hora_inicio = fecha_hora_local.isoformat()
-            fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).isoformat()
+            # --- ¡CORRECCIÓN DE ZONA HORARIA! ---
+            fecha_hora_con_tz = crear_fecha_correcta_madrid(fecha_hora_naive)
+            # --- FIN CORRECCIÓN ---
+
+            fecha_hora_inicio = fecha_hora_con_tz.isoformat()
+            fecha_hora_fin = (fecha_hora_con_tz + dt.timedelta(hours=2)).isoformat()
 
             localidad = "local" if equipo_local.lower() == "malaga" else ("visitante" if equipo_visitante.lower() == "malaga" else "neutral")
             estadio_final = 'Estadio La Rosaleda' if localidad == 'local' else 'Estadio Visitante (Flashscore)'
@@ -290,13 +307,11 @@ def obtener_proximos_partidos_unicaja(driver):
             cookie_button_id = "aceptocookies"
             cookie_button = WebDriverWait(driver, 7).until(EC.element_to_be_clickable((By.ID, cookie_button_id)))
             driver.execute_script("arguments[0].click();", cookie_button)
-            # print("Cookies Unicaja aceptadas.") # Log reducido
             time.sleep(random.uniform(1.0, 2.0))
         except Exception: pass
 
         try:
             WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.fila.fila_interior")))
-            # print("Contenido principal Unicaja cargado.") # Log reducido
             html = driver.page_source; soup = BeautifulSoup(html, 'html.parser')
             secciones_mes = soup.find_all('section', class_='contenedora_calendario')
             meses_es_a_num = {'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04', 'mayo': '05', 'junio': '06','julio': '07', 'agosto': '08', 'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12'}
@@ -341,21 +356,23 @@ def obtener_proximos_partidos_unicaja(driver):
             mes_num_int = int(mes_num)
             if mes_num_int < MES_INICIO_TEMPORADA and MES_ACTUAL >= MES_INICIO_TEMPORADA: ano_partido = ANO_ACTUAL + 1
             elif mes_num_int >= MES_INICIO_TEMPORADA and MES_ACTUAL < MES_INICIO_TEMPORADA: ano_partido = ANO_ACTUAL - 1
-
-            # --- FILTRO DE TEMPORADA (para próximos) ---
+            
             try:
                 fecha_partido_dt = dt.datetime(ano_partido, mes_num_int, int(dia_str))
                 if fecha_partido_dt < FECHA_INICIO_TEMPORADA:
                     continue
             except ValueError: continue
-            # --- FIN FILTRO ---
-
+            
             try:
                 fecha_hora_str = f"{dia_str}.{mes_num}.{ano_partido} {hora_limpia}"
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, '%d.%m.%Y %H:%M')
-                fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive, is_dst=None)
-                fecha_hora_inicio = fecha_hora_local.isoformat()
-                fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).isoformat()
+                
+                # --- ¡CORRECCIÓN DE ZONA HORARIA! ---
+                fecha_hora_con_tz = crear_fecha_correcta_madrid(fecha_hora_naive)
+                # --- FIN CORRECCIÓN ---
+
+                fecha_hora_inicio = fecha_hora_con_tz.isoformat()
+                fecha_hora_fin = (fecha_hora_con_tz + dt.timedelta(hours=2)).isoformat()
             except ValueError as e: continue
 
             lugar_raw = fila.find('span', class_='pabellon'); lugar = lugar_raw.text.strip() if lugar_raw else "Pabellón por confirmar"
@@ -433,22 +450,24 @@ def obtener_resultados_unicaja(driver):
             if mes_num_int < MES_INICIO_TEMPORADA and MES_ACTUAL >= MES_INICIO_TEMPORADA: ano_partido = ANO_ACTUAL + 1
             elif mes_num_int >= MES_INICIO_TEMPORADA and MES_ACTUAL < MES_INICIO_TEMPORADA: ano_partido = ANO_ACTUAL - 1
             
-            # --- ¡NUEVO! FILTRO DE TEMPORADA ---
             try:
                 fecha_partido_dt = dt.datetime(ano_partido, mes_num_int, int(dia_str))
                 if fecha_partido_dt < FECHA_INICIO_TEMPORADA:
                     continue
             except ValueError: continue
-            # --- FIN FILTRO ---
-
+            
             fecha_raw_completa = f"{dia_str}.{mes_num}.{ano_partido}"
 
             try:
                 fecha_hora_str = f"{fecha_raw_completa} {hora_limpia}"
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, '%d.%m.%Y %H:%M')
-                fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive, is_dst=None)
-                fecha_hora_inicio = fecha_hora_local.isoformat()
-                fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).isoformat()
+                
+                # --- ¡CORRECCIÓN DE ZONA HORARIA! ---
+                fecha_hora_con_tz = crear_fecha_correcta_madrid(fecha_hora_naive)
+                # --- FIN CORRECCIÓN ---
+
+                fecha_hora_inicio = fecha_hora_con_tz.isoformat()
+                fecha_hora_fin = (fecha_hora_con_tz + dt.timedelta(hours=2)).isoformat()
             except ValueError as e: continue
 
             lugar_raw = fila.find('span', class_='pabellon'); lugar = lugar_raw.text.strip() if lugar_raw else "Pabellón (Resultado)"
@@ -481,13 +500,20 @@ def generar_archivo_ics(lista_partidos, nombre_archivo="partidos.ics"):
                 titulo = f"{partido['name']} ({partido['resultado']})"
                 if "Próximo partido" in descripcion: descripcion = descripcion.replace("Próximo partido", "Resultado")
             if not isinstance(partido.get('fecha_hora_inicio'), str) or not isinstance(partido.get('fecha_hora_fin'), str): continue
-            dt_inicio = datetime.fromisoformat(partido['fecha_hora_inicio']); dt_fin = datetime.fromisoformat(partido['fecha_hora_fin'])
+            
+            dt_inicio = datetime.fromisoformat(partido['fecha_hora_inicio'])
+            dt_fin = datetime.fromisoformat(partido['fecha_hora_fin'])
+
             fecha_inicio_str = dt_inicio.strftime('%Y%m%d'); uid_base = f"{fecha_inicio_str}-{partido['name'].replace(' ', '')}"
             uid = f"{uid_base}@sportsmlg.com"
             if uid_base in ids_unicos: continue
             ids_unicos.add(uid_base)
-            evento.add('summary', titulo); evento.add('dtstart', dt_inicio); evento.add('dtend', dt_fin)
-            evento.add('dtstamp', datetime.now(tz=pytz.utc)); evento.add('location', partido.get('estadio', 'Lugar no especificado'))
+            
+            evento.add('summary', titulo)
+            evento.add('dtstart', dt_inicio) # dt_inicio ya tiene la info de timezone
+            evento.add('dtend', dt_fin)       # dt_fin ya tiene la info de timezone
+            evento.add('dtstamp', datetime.now(pytz.utc)) # Usamos UTC para dtstamp
+            evento.add('location', partido.get('estadio', 'Lugar no especificado'))
             evento.add('description', descripcion); evento.add('uid', uid); cal.add_component(evento)
             eventos_validos += 1
         except Exception as e: print(f"ERROR al generar evento para {partido.get('name', 'Partido Desconocido')}: {e}"); continue
@@ -541,4 +567,3 @@ if __name__ == "__main__":
             try: driver.quit(); print("Driver cerrado.")
             except Exception as quit_error: print(f"Error al cerrar driver: {quit_error}")
         else: print("Driver no iniciado.")
-
