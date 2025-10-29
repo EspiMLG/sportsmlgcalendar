@@ -119,7 +119,7 @@ def obtener_proximos_partidos_malaga(driver):
             if fecha_partido_dt_naive < FECHA_INICIO_TEMPORADA:
                 continue
 
-            fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive)
+            fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive, is_dst=None)
             fecha_hora_inicio = fecha_hora_local.isoformat()
             fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).isoformat()
             localidad = "local" if "Málaga CF" in equipo_local else "visitante"
@@ -259,7 +259,7 @@ def obtener_resultados_malaga_flashscore(driver):
                 print(f"Error strptime resultado Flashscore: {name} | String: '{fecha_str_procesada}' | Error: {e}")
                 continue
 
-            fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive)
+            fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive, is_dst=None)
             fecha_hora_inicio = fecha_hora_local.isoformat()
             fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).isoformat()
 
@@ -353,7 +353,7 @@ def obtener_proximos_partidos_unicaja(driver):
             try:
                 fecha_hora_str = f"{dia_str}.{mes_num}.{ano_partido} {hora_limpia}"
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, '%d.%m.%Y %H:%M')
-                fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive)
+                fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive, is_dst=None)
                 fecha_hora_inicio = fecha_hora_local.isoformat()
                 fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).isoformat()
             except ValueError as e: continue
@@ -446,7 +446,7 @@ def obtener_resultados_unicaja(driver):
             try:
                 fecha_hora_str = f"{fecha_raw_completa} {hora_limpia}"
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, '%d.%m.%Y %H:%M')
-                fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive)
+                fecha_hora_local = TZ_MADRID.localize(fecha_hora_naive, is_dst=None)
                 fecha_hora_inicio = fecha_hora_local.isoformat()
                 fecha_hora_fin = (fecha_hora_local + dt.timedelta(hours=2)).isoformat()
             except ValueError as e: continue
@@ -541,3 +541,4 @@ if __name__ == "__main__":
             try: driver.quit(); print("Driver cerrado.")
             except Exception as quit_error: print(f"Error al cerrar driver: {quit_error}")
         else: print("Driver no iniciado.")
+
