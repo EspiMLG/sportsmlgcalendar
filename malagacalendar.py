@@ -124,12 +124,23 @@ def obtener_proximos_partidos_malaga(driver):
                 continue
 
             # --- ¡CORRECCIÓN DE ZONA HORARIA! ---
-            # Asignamos la zona horaria de Madrid. .replace() con ZoneInfo maneja DST.
-            fecha_hora_con_tz = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
+            # Asignamos la zona horaria de Madrid (maneja DST)
+            fecha_hora_inicio_local = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
+            # Calculamos la hora de fin también en local
+            fecha_hora_fin_local = fecha_hora_inicio_local + dt.timedelta(hours=2)
+
+            # Convertimos AMBAS a UTC para el ICS. Es el formato más robusto.
+            # (Usamos dt.timezone.utc que viene de 'import datetime as dt')
+            fecha_hora_inicio_utc = fecha_hora_inicio_local.astimezone(dt.timezone.utc)
+            fecha_hora_fin_utc = fecha_hora_fin_local.astimezone(dt.timezone.utc)
+
+            # Guardamos el string ISO en formato UTC (e.g., ...+00:00 o ...Z)
+            fecha_hora_inicio = fecha_hora_inicio_utc.isoformat()
+            fecha_hora_fin = fecha_hora_fin_utc.isoformat()
             # --- FIN CORRECCIÓN ---
 
-            fecha_hora_inicio = fecha_hora_con_tz.isoformat()
-            fecha_hora_fin = (fecha_hora_con_tz + dt.timedelta(hours=2)).isoformat()
+            #fecha_hora_inicio = fecha_hora_con_tz.isoformat()
+            #fecha_hora_fin = (fecha_hora_con_tz + dt.timedelta(hours=2)).isoformat()
             localidad = "local" if "Málaga CF" in equipo_local else "visitante"
             estadio_final = 'Estadio La Rosaleda' if localidad == 'local' else estadio
             descripcion = "Próximo partido Málaga CF"
@@ -255,12 +266,21 @@ def obtener_resultados_malaga_flashscore(driver):
                 print(f"Error strptime resultado Flashscore: {name} | String: '{fecha_str_procesada}' | Error: {e}")
                 continue
 
-            # --- ¡NUEVA CORRECCIÓN DE ZONA HORARIA! ---
-            fecha_hora_con_tz = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
-            # --- FIN CORRECCIÓN ---
+            # --- ¡CORRECCIÓN DE ZONA HORARIA! ---
+            # Asignamos la zona horaria de Madrid (maneja DST)
+            fecha_hora_inicio_local = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
+            # Calculamos la hora de fin también en local
+            fecha_hora_fin_local = fecha_hora_inicio_local + dt.timedelta(hours=2)
 
-            fecha_hora_inicio = fecha_hora_con_tz.isoformat()
-            fecha_hora_fin = (fecha_hora_con_tz + dt.timedelta(hours=2)).isoformat()
+            # Convertimos AMBAS a UTC para el ICS. Es el formato más robusto.
+            # (Usamos dt.timezone.utc que viene de 'import datetime as dt')
+            fecha_hora_inicio_utc = fecha_hora_inicio_local.astimezone(dt.timezone.utc)
+            fecha_hora_fin_utc = fecha_hora_fin_local.astimezone(dt.timezone.utc)
+
+            # Guardamos el string ISO en formato UTC (e.g., ...+00:00 o ...Z)
+            fecha_hora_inicio = fecha_hora_inicio_utc.isoformat()
+            fecha_hora_fin = fecha_hora_fin_utc.isoformat()
+            # --- FIN CORRECCIÓN ---
 
             localidad = "local" if equipo_local.lower() == "malaga" else ("visitante" if equipo_visitante.lower() == "malaga" else "neutral")
             estadio_final = 'Estadio La Rosaleda' if localidad == 'local' else 'Estadio Visitante (Flashscore)'
@@ -349,12 +369,21 @@ def obtener_proximos_partidos_unicaja(driver):
                 fecha_hora_str = f"{dia_str}.{mes_num}.{ano_partido} {hora_limpia}"
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, '%d.%m.%Y %H:%M')
                 
-                # --- ¡NUEVA CORRECCIÓN DE ZONA HORARIA! ---
-                fecha_hora_con_tz = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
-                # --- FIN CORRECCIÓN ---
+                # --- ¡CORRECCIÓN DE ZONA HORARIA! ---
+                # Asignamos la zona horaria de Madrid (maneja DST)
+                fecha_hora_inicio_local = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
+                # Calculamos la hora de fin también en local
+                fecha_hora_fin_local = fecha_hora_inicio_local + dt.timedelta(hours=2)
 
-                fecha_hora_inicio = fecha_hora_con_tz.isoformat()
-                fecha_hora_fin = (fecha_hora_con_tz + dt.timedelta(hours=2)).isoformat()
+                # Convertimos AMBAS a UTC para el ICS. Es el formato más robusto.
+                # (Usamos dt.timezone.utc que viene de 'import datetime as dt')
+                fecha_hora_inicio_utc = fecha_hora_inicio_local.astimezone(dt.timezone.utc)
+                fecha_hora_fin_utc = fecha_hora_fin_local.astimezone(dt.timezone.utc)
+
+                # Guardamos el string ISO en formato UTC (e.g., ...+00:00 o ...Z)
+                fecha_hora_inicio = fecha_hora_inicio_utc.isoformat()
+                fecha_hora_fin = fecha_hora_fin_utc.isoformat()
+                # --- FIN CORRECCIÓN ---
             except ValueError as e: continue
 
             lugar_raw = fila.find('span', class_='pabellon'); lugar = lugar_raw.text.strip() if lugar_raw else "Pabellón por confirmar"
@@ -444,12 +473,21 @@ def obtener_resultados_unicaja(driver):
                 fecha_hora_str = f"{fecha_raw_completa} {hora_limpia}"
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, '%d.%m.%Y %H:%M')
                 
-                # --- ¡NUEVA CORRECCIÓN DE ZONA HORARIA! ---
-                fecha_hora_con_tz = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
-                # --- FIN CORRECCIÓN ---
+                # --- ¡CORRECCIÓN DE ZONA HORARIA! ---
+                # Asignamos la zona horaria de Madrid (maneja DST)
+                fecha_hora_inicio_local = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
+                # Calculamos la hora de fin también en local
+                fecha_hora_fin_local = fecha_hora_inicio_local + dt.timedelta(hours=2)
 
-                fecha_hora_inicio = fecha_hora_con_tz.isoformat()
-                fecha_hora_fin = (fecha_hora_con_tz + dt.timedelta(hours=2)).isoformat()
+                # Convertimos AMBAS a UTC para el ICS. Es el formato más robusto.
+                # (Usamos dt.timezone.utc que viene de 'import datetime as dt')
+                fecha_hora_inicio_utc = fecha_hora_inicio_local.astimezone(dt.timezone.utc)
+                fecha_hora_fin_utc = fecha_hora_fin_local.astimezone(dt.timezone.utc)
+
+                # Guardamos el string ISO en formato UTC (e.g., ...+00:00 o ...Z)
+                fecha_hora_inicio = fecha_hora_inicio_utc.isoformat()
+                fecha_hora_fin = fecha_hora_fin_utc.isoformat()
+                # --- FIN CORRECCIÓN ---
             except ValueError as e: continue
 
             lugar_raw = fila.find('span', class_='pabellon'); lugar = lugar_raw.text.strip() if lugar_raw else "Pabellón (Resultado)"
