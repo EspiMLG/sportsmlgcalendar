@@ -38,21 +38,25 @@ print(f"INFO: Filtrando resultados de ambas webs anteriores al {FECHA_INICIO_TEM
 
 
 # --- FUNCIÓN 1: PRÓXIMOS MÁLAGA ---
-def traducir_fecha_malaga(fecha_es):
-    traduccion_a_ingles_3 = {
-        'ene': 'Jan', 'feb': 'Feb', 'mar': 'Mar', 'abr': 'Apr',
-        'may': 'May', 'jun': 'Jun', 'jul': 'Jul', 'ago': 'Aug', 'sep': 'Sep', 'sept': 'Sep',
-        'oct': 'Oct', 'nov': 'Nov', 'dic': 'Dec'
+# ¡NUEVA! Versión robusta que convierte meses a números para evitar problemas de locale
+def traducir_fecha_malaga_a_numeros(fecha_es):
+    traduccion_a_numero = {
+        'ene': '01', 'feb': '02', 'mar': '03', 'abr': '04',
+        'may': '05', 'jun': '06', 'jul': '07', 'ago': '08', 
+        'sep': '09', 'sept': '09', 'oct': '10', 'nov': '11', 'dic': '12'
     }
     fecha_es_limpia = fecha_es.lower().replace('.', '').replace(' de ', ' ')
     partes = fecha_es_limpia.split(' ')
     if len(partes) < 2: return None
-    dia = partes[0]
+    
+    dia = partes[0].zfill(2) # Asegura 2 dígitos, ej. "8" -> "08"
     mes_es = partes[1]
-    if mes_es in traduccion_a_ingles_3:
-        mes_en_3 = traduccion_a_ingles_3[mes_es]
-        return f"{dia} {mes_en_3}"
-    else: return None
+    
+    if mes_es in traduccion_a_numero:
+        mes_num = traduccion_a_numero[mes_es]
+        return f"{dia}.{mes_num}" # Devuelve "08.11"
+    else: 
+        return None
 
 def obtener_proximos_partidos_malaga(driver):
     print("Buscando próximos partidos Málaga CF (web oficial)...")
@@ -98,26 +102,45 @@ def obtener_proximos_partidos_malaga(driver):
 
             if ',' in fecha_raw: fecha_sin_dia = fecha_raw.split(', ')[1]
             else: fecha_sin_dia = fecha_raw
-            fecha_ingles_3_letras = traducir_fecha_malaga(fecha_sin_dia)
-            if not fecha_ingles_3_letras: continue
+            
+            # ¡CAMBIO! Llamamos a la nueva función numérica
+            fecha_numerica = traducir_fecha_malaga_a_numeros(fecha_sin_dia) # Devuelve ej: "08.11"
+            if not fecha_numerica: continue
 
-            mes_partido_num = int(datetime.strptime(fecha_ingles_3_letras.split(' ')[1], '%b').strftime('%m'))
+            # ¡CAMBIO! Obtenemos el mes directamente
+            mes_partido_num = int(fecha_numerica.split('.')[1])
             ano_partido = ANO_ACTUAL
             if mes_partido_num < MES_INICIO_TEMPORADA and MES_ACTUAL >= MES_INICIO_TEMPORADA:
                 ano_partido = ANO_ACTUAL + 1
             elif mes_partido_num >= MES_INICIO_TEMPORADA and MES_ACTUAL < MES_INICIO_TEMPORADA:
                 ano_partido = ANO_ACTUAL - 1
 
-            fecha_hora_str = f"{fecha_ingles_3_letras} {ano_partido} {hora_limpia}"
+            # ¡CAMBIO! Lógica para manejar AM/PM de forma robusta
+            hora_para_strptime = hora_limpia
+            am_pm = ""
+            if "AM" in hora_limpia.upper():
+                hora_para_strptime = hora_limpia.upper().replace(" AM", "")
+                am_pm = " AM"
+            elif "PM" in hora_limpia.upper():
+                hora_para_strptime = hora_limpia.upper().replace(" PM", "")
+                am_pm = " PM"
+
+            # ¡CAMBIO! Construimos un string numérico, ej: "08.11.2025 9:00 PM" o "08.11.2025 21:00"
+            fecha_hora_str = f"{fecha_numerica}.{ano_partido} {hora_para_strptime}{am_pm}"
+            
             fecha_hora_naive = None
             try:
-                formato = '%d %b %Y %I:%M %p'
+                # ¡CAMBIO! Formato numérico con AM/PM
+                formato = '%d.%m.%Y %I:%M %p'
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
             except ValueError:
                 try:
-                    formato = '%d %b %Y %H:%M'
+                    # ¡CAMBIO! Formato numérico 24H
+                    formato = '%d.%m.%Y %H:%M'
                     fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
-                except ValueError as e: continue
+                except ValueError as e: 
+                    print(f"Error parseando fecha Málaga Próximos: {fecha_hora_str} | Error: {e}")
+                    continue
 
             fecha_partido_dt_naive = dt.datetime(fecha_hora_naive.year, fecha_hora_naive.month, fecha_hora_naive.day)
             if fecha_partido_dt_naive < FECHA_INICIO_TEMPORADA:
