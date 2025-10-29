@@ -7,7 +7,7 @@ import random
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
-    # Fallback para Python < 3.9 (aunque GitHub Actions usa 3.12)
+    # Fallback para Python < 3.9
     from backports.zoneinfo import ZoneInfo
     
 from bs4 import BeautifulSoup
@@ -18,12 +18,10 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-# Ya no necesitamos pytz
 from icalendar import Calendar, Event
 from selenium_stealth import stealth
 
 # --- ZONA HORARIA Y LÓGICA DE TEMPORADA ---
-# ¡NUEVO! Usamos ZoneInfo, que es más fiable
 TZ_MADRID = ZoneInfo("Europe/Madrid")
 ANO_ACTUAL = dt.datetime.now().year
 MES_ACTUAL = dt.datetime.now().month
@@ -38,7 +36,7 @@ print(f"INFO: Filtrando resultados de ambas webs anteriores al {FECHA_INICIO_TEM
 
 
 # --- FUNCIÓN 1: PRÓXIMOS MÁLAGA ---
-# ¡NUEVA! Versión robusta que convierte meses a números para evitar problemas de locale
+# Versión robusta que convierte meses a números para evitar problemas de locale
 def traducir_fecha_malaga_a_numeros(fecha_es):
     traduccion_a_numero = {
         'ene': '01', 'feb': '02', 'mar': '03', 'abr': '04',
@@ -103,11 +101,10 @@ def obtener_proximos_partidos_malaga(driver):
             if ',' in fecha_raw: fecha_sin_dia = fecha_raw.split(', ')[1]
             else: fecha_sin_dia = fecha_raw
 
-            # ¡CAMBIO! Llamamos a la nueva función numérica
+            # Llamamos a la función numérica
             fecha_numerica = traducir_fecha_malaga_a_numeros(fecha_sin_dia) # Devuelve ej: "08.11"
             if not fecha_numerica: continue
 
-            # ¡CAMBIO! Obtenemos el mes directamente
             mes_partido_num = int(fecha_numerica.split('.')[1])
             ano_partido = ANO_ACTUAL
             if mes_partido_num < MES_INICIO_TEMPORADA and MES_ACTUAL >= MES_INICIO_TEMPORADA:
@@ -115,8 +112,7 @@ def obtener_proximos_partidos_malaga(driver):
             elif mes_partido_num >= MES_INICIO_TEMPORADA and MES_ACTUAL < MES_INICIO_TEMPORADA:
                 ano_partido = ANO_ACTUAL - 1
 
-            # ¡CAMBIO! Lógica para manejar AM/PM de forma robusta
-            # Esto convierte "9:00 PM" en "21:00" antes de pasarlo a strptime
+            # Lógica para manejar AM/PM de forma robusta
             hora_para_strptime = hora_limpia
             es_pm = "PM" in hora_limpia.upper()
             es_am = "AM" in hora_limpia.upper()
@@ -137,12 +133,12 @@ def obtener_proximos_partidos_malaga(driver):
                 except Exception:
                     pass # Si falla, se queda con la hora original y probará el formato 24H
 
-            # ¡CAMBIO! Construimos un string numérico, ej: "08.11.2025 21:00"
+            # Construimos un string numérico, ej: "08.11.2025 21:00"
             fecha_hora_str = f"{fecha_numerica}.{ano_partido} {hora_para_strptime}"
             
             fecha_hora_naive = None
             try:
-                # ¡CAMBIO! Solo usamos el formato numérico 24H, igual que Unicaja
+                # Solo usamos el formato numérico 24H, igual que Unicaja
                 formato = '%d.%m.%Y %H:%M'
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
             except ValueError as e: 
@@ -294,10 +290,24 @@ def obtener_resultados_malaga_flashscore(driver):
                 continue
 
             # --- ¡CORRECCIÓN DE ZONA HORARIA Y CONVERSIÓN A UTC! ---
-            fecha_hora_inicio_local = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
-            fecha_hora_fin_local = fecha_hora_inicio_local + dt.timedelta(hours=2)
-            fecha_hora_inicio_utc = fecha_hora_inicio_local.astimezone(dt.timezone.utc)
-            fecha_hora_fin_utc = fecha_hora_fin_local.astimezone(dt.timezone.utc)
+            
+            # Detectar si estamos en GitHub Actions
+            if os.environ.get('GITHUB_ACTIONS') == 'true':
+                # EN GITHUB: Flashscore nos da la hora en UTC.
+                # La tratamos como UTC naive y la localizamos a UTC.
+                print(f"Flashscore GITHUB: {name} - Hora leída (asumida UTC): {fecha_hora_naive}")
+                fecha_hora_inicio_utc = fecha_hora_naive.replace(tzinfo=dt.timezone.utc)
+                fecha_hora_fin_utc = fecha_hora_inicio_utc + dt.timedelta(hours=2)
+            else:
+                # EN LOCAL: Flashscore nos da la hora de Madrid.
+                # La tratamos como Madrid naive, la localizamos a Madrid, y la convertimos a UTC.
+                print(f"Flashscore LOCAL: {name} - Hora leída (asumida Madrid): {fecha_hora_naive}")
+                fecha_hora_inicio_local = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
+                fecha_hora_fin_local = fecha_hora_inicio_local + dt.timedelta(hours=2)
+                
+                fecha_hora_inicio_utc = fecha_hora_inicio_local.astimezone(dt.timezone.utc)
+                fecha_hora_fin_utc = fecha_hora_fin_local.astimezone(dt.timezone.utc)
+
             fecha_hora_inicio = fecha_hora_inicio_utc.isoformat()
             fecha_hora_fin = fecha_hora_fin_utc.isoformat()
             # --- FIN CORRECCIÓN ---
@@ -487,7 +497,7 @@ def obtener_resultados_unicaja(driver):
                 fecha_hora_str = f"{fecha_raw_completa} {hora_limpia}"
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, '%d.%m.%Y %H:%M')
                 
-                # --- ¡CORRECCIÓN DE ZONA HORARIA Y CONVERSIÓN A UTC! ---
+                # --- ¡CORRECCIÓN DE ZONA HORARIA Y CONVERSIIÓN A UTC! ---
                 fecha_hora_inicio_local = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
                 fecha_hora_fin_local = fecha_hora_inicio_local + dt.timedelta(hours=2)
                 fecha_hora_inicio_utc = fecha_hora_inicio_local.astimezone(dt.timezone.utc)
