@@ -3,15 +3,13 @@ import time
 import datetime as dt
 from datetime import datetime
 import random
-# from zoneinfo import ZoneInfo # Importación nativa de Python 3.9+
-# Como GitHub Actions usa Python 3.12, esto funcionará.
-# Si diera problemas, se puede instalar 'tzdata' con pip
+# ¡NUEVO! Importamos la librería moderna de zonas horarias
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
-    # Fallback para entornos más antiguos si fuera necesario (aunque 3.12 lo tiene)
+    # Fallback para Python < 3.9 (aunque GitHub Actions usa 3.12)
     from backports.zoneinfo import ZoneInfo
-
+    
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -20,12 +18,12 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import pytz # <-- Mantenemos pytz SOLO para dtstamp UTC
+import pytz # Solo lo usamos para pytz.utc
 from icalendar import Calendar, Event
 from selenium_stealth import stealth
 
 # --- ZONA HORARIA Y LÓGICA DE TEMPORADA ---
-# ¡NUEVO! Usamos ZoneInfo nativo, es más fiable que pytz para localizar
+# ¡NUEVO! Usamos ZoneInfo, que es más fiable que pytz
 TZ_MADRID = ZoneInfo("Europe/Madrid")
 ANO_ACTUAL = dt.datetime.now().year
 MES_ACTUAL = dt.datetime.now().month
@@ -88,7 +86,7 @@ def obtener_proximos_partidos_malaga(driver):
             equipo_local = equipos[0].text.strip() if len(equipos) > 0 else 'Desconocido'
             equipo_visitante = equipos[1].text.strip() if len(equipos) > 1 else 'Desconocido'
             hora_raw = partido.find('div', class_='MkFootballMatchCard__time').text.strip() if partido.find('div', class_='MkFootballMatchCard__time') else None
-            fecha_raw = partido.find('div', class_='MkFootballMatchCard__date').text.strip() if partido.find('div', class_='MkFootballMatchCard__date') else None
+            fecha_raw = partido.find('div', class_='MkFootballMatchCard__date').text.strip() if partido.find('div', class_=['MkFootballMatchCard__date']) else None
             estadio = partido.find('div', class_='MkFootballMatchCard__venue').text.strip() if partido.find('div', class_='MkFootballMatchCard__venue') else 'Estadio Visitante'
             name = f"{equipo_local} vs {equipo_visitante}"
 
@@ -125,9 +123,9 @@ def obtener_proximos_partidos_malaga(driver):
             if fecha_partido_dt_naive < FECHA_INICIO_TEMPORADA:
                 continue
 
-            # --- ¡NUEVA CORRECCIÓN DE ZONA HORARIA! ---
-            # Adjuntamos la zona horaria de Madrid. 'astimezone' maneja DST correctamente.
-            fecha_hora_con_tz = fecha_hora_naive.astimezone(TZ_MADRID)
+            # --- ¡CORRECCIÓN DE ZONA HORARIA! ---
+            # Asignamos la zona horaria de Madrid. .replace() con ZoneInfo maneja DST.
+            fecha_hora_con_tz = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
             # --- FIN CORRECCIÓN ---
 
             fecha_hora_inicio = fecha_hora_con_tz.isoformat()
@@ -258,7 +256,7 @@ def obtener_resultados_malaga_flashscore(driver):
                 continue
 
             # --- ¡NUEVA CORRECCIÓN DE ZONA HORARIA! ---
-            fecha_hora_con_tz = fecha_hora_naive.astimezone(TZ_MADRID)
+            fecha_hora_con_tz = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
             # --- FIN CORRECCIÓN ---
 
             fecha_hora_inicio = fecha_hora_con_tz.isoformat()
@@ -352,7 +350,7 @@ def obtener_proximos_partidos_unicaja(driver):
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, '%d.%m.%Y %H:%M')
                 
                 # --- ¡NUEVA CORRECCIÓN DE ZONA HORARIA! ---
-                fecha_hora_con_tz = fecha_hora_naive.astimezone(TZ_MADRID)
+                fecha_hora_con_tz = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
                 # --- FIN CORRECCIÓN ---
 
                 fecha_hora_inicio = fecha_hora_con_tz.isoformat()
@@ -447,7 +445,7 @@ def obtener_resultados_unicaja(driver):
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, '%d.%m.%Y %H:%M')
                 
                 # --- ¡NUEVA CORRECCIÓN DE ZONA HORARIA! ---
-                fecha_hora_con_tz = fecha_hora_naive.astimezone(TZ_MADRID)
+                fecha_hora_con_tz = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
                 # --- FIN CORRECCIÓN ---
 
                 fecha_hora_inicio = fecha_hora_con_tz.isoformat()
