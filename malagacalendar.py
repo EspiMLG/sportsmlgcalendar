@@ -3,11 +3,9 @@ import time
 import datetime as dt
 from datetime import datetime
 import random
-# ¡NUEVO! Importamos la librería moderna de zonas horarias
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
-    # Fallback para Python < 3.9
     from backports.zoneinfo import ZoneInfo
     
 from bs4 import BeautifulSoup
@@ -36,22 +34,41 @@ print(f"INFO: Filtrando resultados de ambas webs anteriores al {FECHA_INICIO_TEM
 
 
 # --- FUNCIÓN 1: PRÓXIMOS MÁLAGA ---
-# Versión robusta que convierte meses a números para evitar problemas de locale
+# ¡VERSIÓN FINAL! Esta función ahora detecta formato "Día Mes" (es) y "Mes Día" (en)
 def traducir_fecha_malaga_a_numeros(fecha_es):
     traduccion_a_numero = {
         'ene': '01', 'feb': '02', 'mar': '03', 'abr': '04',
         'may': '05', 'jun': '06', 'jul': '07', 'ago': '08', 
-        'sep': '09', 'sept': '09', 'oct': '10', 'nov': '11', 'dic': '12'
+        'sep': '09', 'sept': '09', 'oct': '10', 'nov': '11', 'dic': '12',
+        # Añadir inglés por si GitHub ve la web en inglés
+        'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04',
+        'may': '05', 'jun': '06', 'jul': '07', 'aug': '08', 
+        'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12'
     }
     fecha_es_limpia = fecha_es.lower().replace('.', '').replace(' de ', ' ')
     partes = fecha_es_limpia.split(' ')
     if len(partes) < 2: return None
     
-    dia = partes[0].zfill(2) # Asegura 2 dígitos, ej. "8" -> "08"
-    mes_es = partes[1]
-    
-    if mes_es in traduccion_a_numero:
-        mes_num = traduccion_a_numero[mes_es]
+    parte1 = partes[0]
+    parte2 = partes[1]
+
+    dia = None
+    mes_num = None
+
+    # Intentar detectar formato "Día Mes" (ej. "8 nov")
+    if parte1.isdigit() and not parte2.isdigit():
+        dia = parte1.zfill(2)
+        if parte2 in traduccion_a_numero:
+            mes_num = traduccion_a_numero[parte2]
+    # Intentar detectar formato "Mes Día" (ej. "nov 8")
+    elif not parte1.isdigit() and parte2.isdigit():
+        dia = parte2.zfill(2)
+        if parte1 in traduccion_a_numero:
+            mes_num = traduccion_a_numero[parte1]
+    else:
+        return None # Formato no reconocido
+
+    if dia and mes_num:
         return f"{dia}.{mes_num}" # Devuelve "08.11"
     else: 
         return None
@@ -101,9 +118,10 @@ def obtener_proximos_partidos_malaga(driver):
             if ',' in fecha_raw: fecha_sin_dia = fecha_raw.split(', ')[1]
             else: fecha_sin_dia = fecha_raw
 
-            # Llamamos a la función numérica
-            fecha_numerica = traducir_fecha_malaga_a_numeros(fecha_sin_dia) # Devuelve ej: "08.11"
-            if not fecha_numerica: continue
+            fecha_numerica = traducir_fecha_malaga_a_numeros(fecha_sin_dia)
+            if not fecha_numerica:
+                print(f"AVISO: No se pudo parsear fecha de {name} (Raw: '{fecha_sin_dia}')")
+                continue
 
             mes_partido_num = int(fecha_numerica.split('.')[1])
             ano_partido = ANO_ACTUAL
@@ -112,7 +130,6 @@ def obtener_proximos_partidos_malaga(driver):
             elif mes_partido_num >= MES_INICIO_TEMPORADA and MES_ACTUAL < MES_INICIO_TEMPORADA:
                 ano_partido = ANO_ACTUAL - 1
 
-            # Lógica para manejar AM/PM de forma robusta
             hora_para_strptime = hora_limpia
             es_pm = "PM" in hora_limpia.upper()
             es_am = "AM" in hora_limpia.upper()
@@ -126,19 +143,17 @@ def obtener_proximos_partidos_malaga(driver):
                     
                     if es_pm and hora != 12:
                         hora += 12
-                    if es_am and hora == 12: # 12 AM es 00:00
+                    if es_am and hora == 12:
                         hora = 0
                         
-                    hora_para_strptime = f"{str(hora).zfill(2)}:{minutos}" # Ej: "21:00"
+                    hora_para_strptime = f"{str(hora).zfill(2)}:{minutos}"
                 except Exception:
-                    pass # Si falla, se queda con la hora original y probará el formato 24H
+                    pass 
 
-            # Construimos un string numérico, ej: "08.11.2025 21:00"
             fecha_hora_str = f"{fecha_numerica}.{ano_partido} {hora_para_strptime}"
             
             fecha_hora_naive = None
             try:
-                # Solo usamos el formato numérico 24H, igual que Unicaja
                 formato = '%d.%m.%Y %H:%M'
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, formato)
             except ValueError as e: 
@@ -149,17 +164,25 @@ def obtener_proximos_partidos_malaga(driver):
             if fecha_partido_dt_naive < FECHA_INICIO_TEMPORADA:
                 continue
 
-            # --- ¡CORRECCIÓN DE ZONA HORARIA Y CONVERSIÓN A UTC! ---
-            # 1. Asignamos la zona horaria de Madrid (maneja DST)
-            fecha_hora_inicio_local = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
-            # 2. Calculamos la hora de fin también en local
-            fecha_hora_fin_local = fecha_hora_inicio_local + dt.timedelta(hours=2)
+            # --- ¡ÚLTIMO CAMBIO! APLICAMOS LA MISMA LÓGICA DE GITHUB ACTIONS AQUÍ ---
+            
+            # Detectar si estamos en GitHub Actions
+            if os.environ.get('GITHUB_ACTIONS') == 'true':
+                # EN GITHUB: malagacf.com (igual que Flashscore) nos da la hora en UTC.
+                # La tratamos como UTC naive y la localizamos a UTC.
+                print(f"Málaga Próximos GITHUB: {name} - Hora leída (asumida UTC): {fecha_hora_naive}")
+                fecha_hora_inicio_utc = fecha_hora_naive.replace(tzinfo=dt.timezone.utc)
+                fecha_hora_fin_utc = fecha_hora_inicio_utc + dt.timedelta(hours=2)
+            else:
+                # EN LOCAL: malagacf.com nos da la hora de Madrid.
+                # La tratamos como Madrid naive, la localizamos a Madrid, y la convertimos a UTC.
+                print(f"Málaga Próximos LOCAL: {name} - Hora leída (asumida Madrid): {fecha_hora_naive}")
+                fecha_hora_inicio_local = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
+                fecha_hora_fin_local = fecha_hora_inicio_local + dt.timedelta(hours=2)
+                
+                fecha_hora_inicio_utc = fecha_hora_inicio_local.astimezone(dt.timezone.utc)
+                fecha_hora_fin_utc = fecha_hora_fin_local.astimezone(dt.timezone.utc)
 
-            # 3. Convertimos AMBAS a UTC para el ICS. Es el formato más robusto.
-            fecha_hora_inicio_utc = fecha_hora_inicio_local.astimezone(dt.timezone.utc)
-            fecha_hora_fin_utc = fecha_hora_fin_local.astimezone(dt.timezone.utc)
-
-            # 4. Guardamos el string ISO en formato UTC
             fecha_hora_inicio = fecha_hora_inicio_utc.isoformat()
             fecha_hora_fin = fecha_hora_fin_utc.isoformat()
             # --- FIN CORRECCIÓN ---
@@ -329,7 +352,7 @@ def obtener_resultados_malaga_flashscore(driver):
     print(f"Procesados {partidos_procesados} resultados de Málaga CF (Resultados.com).")
     return eventos
 
-# --- FUNCIÓN 3: PRÓXIMOS UNICAJA (CON HORA POR DEFECTO Y FILTRO TEMPORADA) ---
+# --- FUNCIÓN 3: PRÓXIMOS UNICAJA (ESTA FUNCIÓN NO CAMBIA) ---
 def obtener_proximos_partidos_unicaja(driver):
     print("Buscando próximos partidos Unicaja...")
     eventos = []; filas_partido_con_mes = []
@@ -399,7 +422,7 @@ def obtener_proximos_partidos_unicaja(driver):
                 fecha_hora_str = f"{dia_str}.{mes_num}.{ano_partido} {hora_limpia}"
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, '%d.%m.%Y %H:%M')
                 
-                # --- ¡CORRECCIÓN DE ZONA HORARIA Y CONVERSIÓN A UTC! ---
+                # --- LÓGICA DE UNICAJA (SIEMPRE MADRID) ---
                 fecha_hora_inicio_local = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
                 fecha_hora_fin_local = fecha_hora_inicio_local + dt.timedelta(hours=2)
                 fecha_hora_inicio_utc = fecha_hora_inicio_local.astimezone(dt.timezone.utc)
@@ -423,7 +446,7 @@ def obtener_proximos_partidos_unicaja(driver):
     print(f"Procesados {partidos_procesados} próximos partidos de Unicaja.")
     return eventos
 
-# --- FUNCIÓN 4: RESULTADOS UNICAJA (CON HORA ORIGINAL Y FILTRO) ---
+# --- FUNCIÓN 4: RESULTADOS UNICAJA (ESTA FUNCIÓN TAMPOCO CAMBIA) ---
 def obtener_resultados_unicaja(driver):
     print("Buscando resultados Unicaja...")
     eventos = []; filas_partido_con_mes = []
@@ -497,7 +520,7 @@ def obtener_resultados_unicaja(driver):
                 fecha_hora_str = f"{fecha_raw_completa} {hora_limpia}"
                 fecha_hora_naive = dt.datetime.strptime(fecha_hora_str, '%d.%m.%Y %H:%M')
                 
-                # --- ¡CORRECCIÓN DE ZONA HORARIA Y CONVERSIIÓN A UTC! ---
+                # --- LÓGICA DE UNICAJA (SIEMPRE MADRID) ---
                 fecha_hora_inicio_local = fecha_hora_naive.replace(tzinfo=TZ_MADRID)
                 fecha_hora_fin_local = fecha_hora_inicio_local + dt.timedelta(hours=2)
                 fecha_hora_inicio_utc = fecha_hora_inicio_local.astimezone(dt.timezone.utc)
@@ -539,7 +562,6 @@ def generar_archivo_ics(lista_partidos, nombre_archivo="partidos.ics"):
                 if "Próximo partido" in descripcion: descripcion = descripcion.replace("Próximo partido", "Resultado")
             if not isinstance(partido.get('fecha_hora_inicio'), str) or not isinstance(partido.get('fecha_hora_fin'), str): continue
             
-            # fromisoformat() leerá correctamente las fechas UTC (ej: ...+00:00)
             dt_inicio = datetime.fromisoformat(partido['fecha_hora_inicio'])
             dt_fin = datetime.fromisoformat(partido['fecha_hora_fin'])
 
@@ -549,9 +571,9 @@ def generar_archivo_ics(lista_partidos, nombre_archivo="partidos.ics"):
             ids_unicos.add(uid_base)
             
             evento.add('summary', titulo)
-            evento.add('dtstart', dt_inicio) # dt_inicio ya tiene la info de timezone UTC
-            evento.add('dtend', dt_fin)       # dt_fin ya tiene la info de timezone UTC
-            evento.add('dtstamp', datetime.now(dt.timezone.utc)) # Usamos UTC para dtstamp
+            evento.add('dtstart', dt_inicio)
+            evento.add('dtend', dt_fin)
+            evento.add('dtstamp', datetime.now(dt.timezone.utc))
             evento.add('location', partido.get('estadio', 'Lugar no especificado'))
             evento.add('description', descripcion); evento.add('uid', uid); cal.add_component(evento)
             eventos_validos += 1
@@ -573,7 +595,6 @@ if __name__ == "__main__":
     driver = None
     try:
         try:
-             # webdriver_manager descargará el driver correcto
              driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options); print("ChromeDriver iniciado.")
         except Exception as driver_error:
              print(f"ERROR CRÍTICO ChromeDriver: {driver_error}")
@@ -587,7 +608,7 @@ if __name__ == "__main__":
             print("\n--- Iniciando scrape de Málaga ---")
             try: todos_los_eventos.extend(obtener_proximos_partidos_malaga(driver))
             except Exception as e: print(f"ERROR GRAVE scrape próximos Málaga: {e}")
-            try: todos_los_eventos.extend(obtener_resultados_malaga_flashscore(driver)) # <--- LLAMA A FLASHSCORE
+            try: todos_los_eventos.extend(obtener_resultados_malaga_flashscore(driver))
             except Exception as e: print(f"ERROR GRAVE scrape resultados Málaga (Flashscore): {e}")
             print("--- Fin scrape de Málaga ---")
             print("\n--- Iniciando scrape de Unicaja ---")
