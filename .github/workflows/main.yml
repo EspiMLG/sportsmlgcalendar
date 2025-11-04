@@ -2,7 +2,8 @@ name: Update Google Calendar
 
 on:
   schedule:
-    - cron: '0 12 * * 6'  # Ejecutar todos los sábados a las 12:00 UTC
+    - cron: '0 12 * * 6'  # Sábados a las 12:00 UTC
+    - cron: '0 16 * * 3'  # Miércoles a las 16:00 UTC (17:00 en Madrid CET)
   workflow_dispatch:  # Permitir la ejecución manual
 
 jobs:
