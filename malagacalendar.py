@@ -308,10 +308,21 @@ def obtener_resultados_malaga_flashscore(driver):
                 continue
             resultado_final = f"{sh_match.group(0)} - {sa_match.group(0)}"
 
-            datetime_tag = partido.select_one(".event__time")
+            # Selector compatible con la estructura antigua y la nueva de Flashscore
+            datetime_tag = partido.select_one(
+                "[data-testid='wcl-stageTime'], "
+                ".event__stageTime, "
+                ".event__time"
+            )
+
             if not datetime_tag:
+                print("AVISO: No se encontró el elemento de fecha/hora.")
+                print("HTML del partido:", partido.prettify()[:2000])
                 continue
-            datetime_text = datetime_tag.get_text(" ", strip=True)
+
+            #FOR DEBUG PURPOSES:
+            #datetime_text = datetime_tag.get_text(" ", strip=True)
+            #print(f"DEBUG Flashscore - Fecha/hora encontrada: {datetime_text}")
 
             # Extraer fecha DD.MM.(YYYY) y hora HH:MM mediante Regex (ignora textos como "AET", "Pen", "FRO")
             match_fecha = re.search(r'(\d{2})\.(\d{2})\.(?:(\d{4}))?', datetime_text)
@@ -371,7 +382,11 @@ def obtener_resultados_malaga_flashscore(driver):
         except Exception as e:
             print(f"Error procesando un resultado de Flashscore: {e}")
             continue
-
+    if partidos_flashscore and partidos_procesados == 0:
+        print(
+            "ALERTA: Se encontraron partidos, "
+            "pero ninguno pudo convertirse en resultado."
+        )
     print(f"Procesados {partidos_procesados} resultados de Málaga CF (Flashscore).")
     return eventos
 
