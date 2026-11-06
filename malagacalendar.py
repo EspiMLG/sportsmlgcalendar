@@ -321,7 +321,7 @@ def obtener_resultados_malaga_flashscore(driver):
                 continue
 
             #FOR DEBUG PURPOSES:
-            #datetime_text = datetime_tag.get_text(" ", strip=True)
+            datetime_text = datetime_tag.get_text(" ", strip=True)
             #print(f"DEBUG Flashscore - Fecha/hora encontrada: {datetime_text}")
 
             # Extraer fecha DD.MM.(YYYY) y hora HH:MM mediante Regex (ignora textos como "AET", "Pen", "FRO")
