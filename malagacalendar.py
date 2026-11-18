@@ -48,6 +48,51 @@ DEFAULT_HEADERS = {
 
 ESTADIO_MALAGA_LOCAL = "Estadio La Rosaleda, Málaga"
 PABELLON_UNICAJA_LOCAL = "Palacio de Deportes José María Martín Carpena, Málaga"
+PABELLON_HEREDIA21_LOCAL = "Ciudad Deportiva de Carranque (Pabellón), Málaga"
+
+RFAF_CODIGO_EQUIPO_HEREDIA21 = "46655793"
+RFAF_CODGRUPO_HEREDIA21_DEFAULT = "48466076"
+RFAF_URL_EQUIPO_HEREDIA21 = (
+    f"https://www.rfaf.es/pnfg/NPcd/NFG_VisEquipos?cod_primaria=1000119&Codigo_Equipo={RFAF_CODIGO_EQUIPO_HEREDIA21}"
+)
+
+CALENDARIOS_MODULARES = {
+    "completo.ics": {
+        "deportes": {"futbol", "basket", "futsal"},
+        "calname": "Calendario Málaga CF, Unicaja y Heredia 21 FS",
+        "etiqueta": "Málaga CF + Unicaja + Heredia 21 FS",
+    },
+    "partidos.ics": {
+        "deportes": {"futbol", "basket"},
+        "calname": "Calendario Málaga CF y Unicaja",
+        "etiqueta": "Málaga CF + Unicaja",
+    },
+    "malaga.ics": {
+        "deportes": {"futbol"},
+        "calname": "Calendario Málaga CF",
+        "etiqueta": "Solo Málaga CF",
+    },
+    "unicaja.ics": {
+        "deportes": {"basket"},
+        "calname": "Calendario Unicaja Baloncesto",
+        "etiqueta": "Solo Unicaja Baloncesto",
+    },
+    "heredia21.ics": {
+        "deportes": {"futsal"},
+        "calname": "Calendario Heredia 21 Femenino FS",
+        "etiqueta": "Solo Heredia 21 FS",
+    },
+    "malaga_heredia21.ics": {
+        "deportes": {"futbol", "futsal"},
+        "calname": "Calendario Málaga CF y Heredia 21 FS",
+        "etiqueta": "Málaga CF + Heredia 21 FS",
+    },
+    "unicaja_heredia21.ics": {
+        "deportes": {"basket", "futsal"},
+        "calname": "Calendario Unicaja y Heredia 21 FS",
+        "etiqueta": "Unicaja + Heredia 21 FS",
+    },
+}
 
 # --- DICCIONARIOS DE NORMALIZACIÓN DE EQUIPOS Y RECINTOS ---
 ALIAS_EQUIPOS_FUTBOL = {
@@ -239,6 +284,49 @@ PABELLONES_BASKET = {
     "BC Oostende": "COREtec Dôme, Ostende",
 }
 
+ALIAS_EQUIPOS_FUTSAL = {
+    "club deportivo heredia 21 fs": "Heredia 21 FS",
+    "cd heredia 21 fs": "Heredia 21 FS",
+    "heredia 21 fs": "Heredia 21 FS",
+    "heredia 21": "Heredia 21 FS",
+    "c.d. u.d. playas de malaga f.s.": "UD Playas de Málaga FS",
+    "c.d. u.d. playas de málaga f.s.": "UD Playas de Málaga FS",
+    "ud playas de malaga fs": "UD Playas de Málaga FS",
+    "ud playas de málaga fs": "UD Playas de Málaga FS",
+    "cd cuevas bajas atletico": "CD Cuevas Bajas Atlético",
+    "cd cuevas bajas atlético": "CD Cuevas Bajas Atlético",
+    "club deportivo campillos futbol sala femenino": "CD Campillos FS Femenino",
+    "cd campillos fs femenino": "CD Campillos FS Femenino",
+    "c.d. axarquia f.s. ayuntamiento algarrobo": "CD Axarquía FS Algarrobo",
+    "cd axarquia fs algarrobo": "CD Axarquía FS Algarrobo",
+    "cd axarquía fs algarrobo": "CD Axarquía FS Algarrobo",
+    "c.d. torre de casabermeja": "CD Torre de Casabermeja",
+    "cd torre de casabermeja": "CD Torre de Casabermeja",
+    "c.v. av el torcal": "CV AV El Torcal",
+    "cv av el torcal": "CV AV El Torcal",
+    "club de futbol arriate": "CF Arriate",
+    "cf arriate": "CF Arriate",
+    "club torremolinos f.s.": "Club Torremolinos FS",
+    "club torremolinos fs": "Club Torremolinos FS",
+    "c.d. sampedreno futsal": "CD Sampedreño Futsal",
+    "c.d. sampedreño futsal": "CD Sampedreño Futsal",
+    "cd sampedreno futsal": "CD Sampedreño Futsal",
+    "cd sampedreño futsal": "CD Sampedreño Futsal",
+}
+
+PABELLONES_FUTSAL = {
+    "Heredia 21 FS": PABELLON_HEREDIA21_LOCAL,
+    "UD Playas de Málaga FS": "Polideportivo Municipal La Princesa (Pista Ext.), Málaga",
+    "CD Cuevas Bajas Atlético": "Polideportivo Municipal de Cuevas Bajas, Málaga",
+    "CD Campillos FS Femenino": "Pabellón Municipal de Campillos, Málaga",
+    "CD Axarquía FS Algarrobo": "Pabellón Municipal La Vega, Algarrobo (Málaga)",
+    "CD Torre de Casabermeja": "Pabellón Municipal de Casabermeja, Málaga",
+    "CV AV El Torcal": "Pista Polideportiva Municipal El Torcal, Málaga",
+    "CF Arriate": "Pabellón Municipal de Arriate, Málaga",
+    "Club Torremolinos FS": "Pabellón Municipal San Miguel, Torremolinos (Málaga)",
+    "CD Sampedreño Futsal": "Pabellón Municipal Elena Benítez, San Pedro Alcántara (Marbella)",
+}
+
 
 def _quitar_acentos(texto):
     if not texto:
@@ -271,7 +359,13 @@ def normalizar_nombre_equipo(nombre, deporte="futbol"):
     clave_exacta = limpio.lower()
     clave_sin_acentos = _quitar_acentos(clave_exacta)
 
-    mapa = ALIAS_EQUIPOS_FUTBOL if deporte == "futbol" else ALIAS_EQUIPOS_BASKET
+    if deporte == "basket":
+        mapa = ALIAS_EQUIPOS_BASKET
+    elif deporte == "futsal":
+        mapa = ALIAS_EQUIPOS_FUTSAL
+    else:
+        mapa = ALIAS_EQUIPOS_FUTBOL
+
     if clave_exacta in mapa:
         return mapa[clave_exacta]
     if clave_sin_acentos in mapa:
@@ -331,6 +425,38 @@ def resolver_pabellon_basket(equipo_local, pabellon_web=None):
 
     local_sin = _quitar_acentos(local_norm.lower())
     for eq, pab in PABELLONES_BASKET.items():
+        eq_sin = _quitar_acentos(eq.lower())
+        if eq_sin in local_sin or local_sin in eq_sin:
+            return pab
+
+    if local_norm and local_norm != "Desconocido":
+        return f"Pabellón de {local_norm}"
+    return "Pabellón por confirmar"
+
+
+def resolver_pabellon_futsal(equipo_local, pabellon_web=None):
+    """Devuelve siempre el pabellón o pista oficial para un partido de fútbol sala femenino (RFAF)."""
+    local_norm = normalizar_nombre_equipo(equipo_local, "futsal")
+    if "heredia 21" in local_norm.lower():
+        return PABELLON_HEREDIA21_LOCAL
+
+    if pabellon_web:
+        pab_limpio = pabellon_web.strip()
+        genericos = {
+            "pabellón por confirmar", "pabellon por confirmar",
+            "pabellón (resultado)", "pabellon (resultado)",
+            "por confirmar", "tbd", "-"
+        }
+        if pab_limpio and pab_limpio.lower() not in genericos:
+            if "carranque" in pab_limpio.lower():
+                return PABELLON_HEREDIA21_LOCAL
+            return pab_limpio
+
+    if local_norm in PABELLONES_FUTSAL:
+        return PABELLONES_FUTSAL[local_norm]
+
+    local_sin = _quitar_acentos(local_norm.lower())
+    for eq, pab in PABELLONES_FUTSAL.items():
         eq_sin = _quitar_acentos(eq.lower())
         if eq_sin in local_sin or local_sin in eq_sin:
             return pab
@@ -1220,10 +1346,228 @@ def obtener_resultados_unicaja(driver=None):
     return resultados
 
 
+# --- FUNCIÓN 4B: CLUB DEPORTIVO HEREDIA 21 FS (RFAF SENIOR FEMENINO F.S.) ---
+def _descargar_html_rfaf(url, session, marcadores_esperados=None, reintentos=3):
+    """
+    Descarga una página de rfaf.es gestionando la cookie JSESSIONID inicial (que redirige
+    a /pnfg/NLogin en la primera petición sin sesión) y la codificación ISO-8859-15.
+    """
+    marcadores = marcadores_esperados or ["NFG_", "<table"]
+    for intento in range(reintentos):
+        try:
+            resp = session.get(url, headers=DEFAULT_HEADERS, timeout=12)
+            if resp.status_code == 200:
+                html = resp.content.decode("iso-8859-15", errors="replace")
+                if any(m in html for m in marcadores) and "NLogin" not in resp.url:
+                    return html
+            time.sleep(0.6 * (intento + 1))
+        except Exception:
+            time.sleep(0.6 * (intento + 1))
+    return None
+
+
+def parsear_partidos_heredia21_html(html, nombre_competicion="2ª Andaluza Femenina Sénior F.S."):
+    """
+    Parsea la tabla de partidos de RFAF (NFG_VisCompeticiones_Grupo) para el
+    Club Deportivo Heredia 21 FS, devolviendo (proximos, resultados).
+    """
+    proximos = []
+    resultados = []
+    if not html:
+        return proximos, resultados
+
+    soup = BeautifulSoup(html, "html.parser")
+    filas = soup.find_all("tr")
+
+    for fila in filas:
+        try:
+            tds = fila.find_all("td", recursive=False)
+            if len(tds) != 3:
+                continue
+
+            h5_equipos_fecha = tds[1].find_all("h5")
+            if len(h5_equipos_fecha) < 3:
+                continue
+
+            jornada_raw = " ".join(tds[0].get_text(" ", strip=True).split())
+            raw_local = " ".join(h5_equipos_fecha[0].get_text(" ", strip=True).split())
+            raw_visitante = " ".join(h5_equipos_fecha[1].get_text(" ", strip=True).split())
+            fecha_hora_raw = " ".join(h5_equipos_fecha[2].get_text(" ", strip=True).split())
+
+            match_fecha = re.search(r'(\d{2})-(\d{2})-(\d{4})', fecha_hora_raw)
+            if not match_fecha:
+                continue
+
+            dia_int = int(match_fecha.group(1))
+            mes_int = int(match_fecha.group(2))
+            ano_int = int(match_fecha.group(3))
+
+            fecha_partido_dt = dt.datetime(ano_int, mes_int, dia_int)
+            if fecha_partido_dt < FECHA_INICIO_TEMPORADA:
+                continue
+
+            equipo_local = normalizar_nombre_equipo(raw_local, "futsal")
+            equipo_visitante = normalizar_nombre_equipo(raw_visitante, "futsal")
+            name = f"{equipo_local} vs {equipo_visitante}"
+
+            match_hora = re.search(r'(\d{1,2}):(\d{2})', fecha_hora_raw)
+            if match_hora:
+                hora_int = int(match_hora.group(1))
+                min_int = int(match_hora.group(2))
+                hora_confirmada = True
+            else:
+                hora_int = 3
+                min_int = 0
+                hora_confirmada = False
+
+            fecha_hora_inicio_local = dt.datetime(
+                ano_int, mes_int, dia_int, hora_int, min_int, tzinfo=TZ_MADRID
+            )
+            fecha_hora_fin_local = fecha_hora_inicio_local + dt.timedelta(hours=2)
+            fecha_hora_inicio_utc = fecha_hora_inicio_local.astimezone(dt.timezone.utc)
+            fecha_hora_fin_utc = fecha_hora_fin_local.astimezone(dt.timezone.utc)
+
+            estadio_final = resolver_pabellon_futsal(equipo_local)
+
+            etiqueta_jornada = f"J{jornada_raw}" if jornada_raw.isdigit() else jornada_raw
+            info_comp = " - ".join(p for p in [nombre_competicion, etiqueta_jornada] if p)
+
+            texto_marcador = " ".join(tds[2].get_text(" ", strip=True).split())
+            match_marcador = re.search(r'(\d+)\s*-\s*(\d+)', texto_marcador)
+
+            if match_marcador:
+                resultado_final = f"{match_marcador.group(1)} - {match_marcador.group(2)}"
+                descripcion = f"Resultado Heredia 21 FS: {resultado_final}"
+                if info_comp:
+                    descripcion += f" | {info_comp}"
+                resultados.append({
+                    "fecha_hora_inicio": fecha_hora_inicio_utc.isoformat(),
+                    "fecha_hora_fin": fecha_hora_fin_utc.isoformat(),
+                    "estadio": estadio_final,
+                    "name": name,
+                    "descripcion": descripcion,
+                    "resultado": resultado_final,
+                    "deporte": "futsal",
+                    "competicion": info_comp,
+                    "hora_confirmada": True,
+                })
+            else:
+                descripcion = "Próximo partido Heredia 21 FS"
+                if info_comp:
+                    descripcion += f" ({info_comp})"
+                if not hora_confirmada:
+                    descripcion += " (Hora por confirmar)"
+                proximos.append({
+                    "fecha_hora_inicio": fecha_hora_inicio_utc.isoformat(),
+                    "fecha_hora_fin": fecha_hora_fin_utc.isoformat(),
+                    "estadio": estadio_final,
+                    "name": name,
+                    "descripcion": descripcion,
+                    "deporte": "futsal",
+                    "competicion": info_comp,
+                    "hora_confirmada": hora_confirmada,
+                })
+        except Exception as e:
+            print(f"Error procesando fila de Heredia 21 FS en RFAF: {e}")
+            continue
+
+    return proximos, resultados
+
+
+def obtener_partidos_heredia21_rfaf(driver=None, session=None):
+    """
+    Obtiene todos los partidos (próximos y resultados) de la temporada actual del
+    Club Deportivo Heredia 21 FS desde la web oficial de la RFAF.
+    """
+    print("Buscando partidos de Heredia 21 Femenino FS en RFAF...")
+    s = session or requests.Session()
+
+    # 1. Calentar sesión con la ficha del equipo para obtener cookie JSESSIONID de /pnfg
+    _descargar_html_rfaf(RFAF_URL_EQUIPO_HEREDIA21, s, marcadores_esperados=["HEREDIA 21", "NFG_"])
+
+    # 2. Descubrir grupos de competición activos del equipo (con fallback seguro al grupo 48466076)
+    grupos_a_consultar = []
+    url_comp_equipo = (
+        f"https://www.rfaf.es/pnfg/NPcd/NFG_VisCompeticiones_Equipo"
+        f"?cod_primaria=1000123&codequipo={RFAF_CODIGO_EQUIPO_HEREDIA21}"
+    )
+    html_comp = _descargar_html_rfaf(url_comp_equipo, s, marcadores_esperados=["NFG_VisCompeticiones_Grupo"])
+    if html_comp:
+        soup_comp = BeautifulSoup(html_comp, "html.parser")
+        for tr in soup_comp.find_all("tr"):
+            a_grp = tr.find("a", href=re.compile(r"NFG_VisCompeticiones_Grupo.*codgrupo=\d+"))
+            if not a_grp:
+                continue
+            m_grp = re.search(r"codgrupo=(\d+)", a_grp.get("href", ""))
+            if not m_grp:
+                continue
+            codgrupo = m_grp.group(1)
+            # Evitar consultar el grupo de la liga 2025/26 anterior (46676649)
+            if codgrupo == "46676649":
+                continue
+            tds_tr = tr.find_all("td")
+            nombre_comp = " ".join(tds_tr[0].get_text(" ", strip=True).split()) if tds_tr else "2ª Andaluza Femenina Sénior F.S."
+            if (codgrupo, nombre_comp) not in grupos_a_consultar:
+                grupos_a_consultar.append((codgrupo, nombre_comp))
+
+    if not grupos_a_consultar:
+        grupos_a_consultar = [(RFAF_CODGRUPO_HEREDIA21_DEFAULT, "2ª Andaluza Femenina Sénior F.S. (Málaga)")]
+
+    todos_eventos = []
+    for codgrupo, nombre_comp in grupos_a_consultar:
+        url_grupo = (
+            f"https://www.rfaf.es/pnfg/NPcd/NFG_VisCompeticiones_Grupo"
+            f"?cod_primaria=1000123&codequipo={RFAF_CODIGO_EQUIPO_HEREDIA21}&codgrupo={codgrupo}"
+        )
+        html_grupo = _descargar_html_rfaf(url_grupo, s, marcadores_esperados=["HEREDIA 21"])
+        if not html_grupo and driver:
+            try:
+                driver.get(RFAF_URL_EQUIPO_HEREDIA21)
+                time.sleep(0.8)
+                driver.get(url_grupo)
+                time.sleep(1.0)
+                html_grupo = driver.page_source
+            except Exception as e:
+                print(f"AVISO: Fallback Selenium RFAF falló para grupo {codgrupo}: {e}")
+
+        if html_grupo:
+            prox, res = parsear_partidos_heredia21_html(html_grupo, nombre_comp)
+            todos_eventos.extend(prox)
+            todos_eventos.extend(res)
+        time.sleep(0.3)
+
+    print(f"Procesados {len(todos_eventos)} partidos de Heredia 21 FS en RFAF.")
+    return todos_eventos
+
+
 # --- FUNCIÓN 5: GENERAR ICS CON RECONCILIACIÓN INTELIGENTE Y ANTI-BORRADO ---
+def _detectar_deporte_texto(summary="", description="", location="", deporte_explicito=None):
+    """Determina el deporte ('futbol', 'basket' o 'futsal') a partir de los metadatos del evento."""
+    if deporte_explicito in ("futbol", "basket", "futsal"):
+        return deporte_explicito
+    texto = f"{summary} {description} {location}".lower()
+    if (
+        "heredia 21" in texto
+        or "f.s." in texto
+        or "futsal" in texto
+        or "fútbol sala" in texto
+        or "futbol sala" in texto
+        or "carranque" in texto
+    ):
+        return "futsal"
+    if (
+        "unicaja" in texto
+        or "carpena" in texto
+        or "liga endesa" in texto
+        or "champions league" in texto
+    ):
+        return "basket"
+    return "futbol"
+
+
 def _extraer_info_uid_o_summary(component):
     """
-    Extrae (fecha_dt, par_equipos_normalizado, es_corrupto) de un VEVENT existente
+    Extrae (fecha_dt, par_equipos_normalizado, deporte, es_corrupto) de un VEVENT existente
     para poder detectar duplicados cuando un partido cambia de fecha o se normaliza el nombre.
     """
     uid = str(component.get("uid", ""))
@@ -1238,17 +1582,10 @@ def _extraer_info_uid_o_summary(component):
     if re.search(r'\([A-Za-z]{2,3}\)', summary):
         es_corrupto = True
 
-    # Determinar deporte
-    es_basket = (
-        "unicaja" in summary.lower()
-        or "unicaja" in description.lower()
-        or "pabellón" in location.lower()
-        or "carpena" in location.lower()
-    )
-    deporte = "basket" if es_basket else "futbol"
+    deporte = _detectar_deporte_texto(summary, description, location)
 
     # Limpiar emojis y resultado final "(89 - 87)" del summary
-    titulo_limpio = re.sub(r'^[⚽🏀]\s*', '', summary).strip()
+    titulo_limpio = re.sub(r'^[⚽🏀🥅]\s*', '', summary).strip()
     titulo_limpio = re.sub(r'\s*\(\d+\s*-\s*\d+\)\s*$', '', titulo_limpio).strip()
 
     par_normalizado = None
@@ -1296,12 +1633,7 @@ def _normalizar_partido_entrada(partido):
     desc = copia.get("descripcion", "")
     estadio = copia.get("estadio", "")
 
-    es_basket = (
-        copia.get("deporte") == "basket"
-        or "unicaja" in name.lower()
-        or "unicaja" in desc.lower()
-    )
-    deporte = "basket" if es_basket else "futbol"
+    deporte = _detectar_deporte_texto(name, desc, estadio, copia.get("deporte"))
     copia["deporte"] = deporte
 
     if " vs " in name:
@@ -1311,27 +1643,38 @@ def _normalizar_partido_entrada(partido):
         copia["name"] = f"{loc} vs {vis}"
         if deporte == "basket":
             copia["estadio"] = resolver_pabellon_basket(loc, estadio)
+        elif deporte == "futsal":
+            copia["estadio"] = resolver_pabellon_futsal(loc, estadio)
         else:
             copia["estadio"] = resolver_estadio_futbol(loc, estadio)
 
     return copia
 
 
-def generar_archivo_ics(lista_partidos, nombre_archivo="partidos.ics"):
+def generar_archivo_ics(
+    lista_partidos,
+    nombre_archivo="partidos.ics",
+    calname="Calendario Málaga CF y Unicaja",
+    deportes_permitidos=None,
+):
     eventos_previos = cargar_eventos_previos_ics(nombre_archivo)
 
     cal = Calendar()
     cal.add('prodid', '-//SportsMLGCalendar//espi.mlg//ES')
     cal.add('version', '2.0')
     cal.add('calscale', 'GREGORIAN')
-    cal.add('X-WR-CALNAME', 'Calendario Málaga CF y Unicaja')
+    cal.add('X-WR-CALNAME', calname)
     cal.add('X-WR-TIMEZONE', 'Europe/Madrid')
 
-    print(f"Procesando {len(lista_partidos)} eventos recién scrapeados para {nombre_archivo}...")
+    partidos_normalizados = [_normalizar_partido_entrada(p) for p in lista_partidos]
+    if deportes_permitidos:
+        partidos_normalizados = [
+            p for p in partidos_normalizados if p.get("deporte") in deportes_permitidos
+        ]
+
+    print(f"Procesando {len(partidos_normalizados)} eventos recién scrapeados para {nombre_archivo}...")
     nuevos_eventos_dict = {}
     nuevos_meta = []  # Lista de (uid, fecha_date, name_normalizado, tiene_resultado, hora_confirmada)
-
-    partidos_normalizados = [_normalizar_partido_entrada(p) for p in lista_partidos]
 
     # Prioridad: 1) Con resultado final, 2) Con hora confirmada, 3) Hora por confirmar
     def _prioridad_partido(x):
@@ -1413,13 +1756,16 @@ def generar_archivo_ics(lista_partidos, nombre_archivo="partidos.ics"):
     # Reconciliación inteligente con eventos previos:
     # Mantenemos eventos previos de respaldo SOLO si:
     # 1) No están corruptos (ej. 'Advancing to next round' o '(Esp)')
-    # 2) No han sido reemplazados por el mismo partido en una fecha actualizada (±12 días)
+    # 2) Pertenecen a los deportes permitidos de este archivo .ics
+    # 3) No han sido reemplazados por el mismo partido en una fecha actualizada (±12 días)
     eventos_fusionados = {}
     for uid_prev, comp_prev in eventos_previos.items():
         if uid_prev in nuevos_eventos_dict:
             continue
         f_prev, par_prev, dep_prev, es_corrupto = _extraer_info_uid_o_summary(comp_prev)
         if es_corrupto:
+            continue
+        if deportes_permitidos and dep_prev not in deportes_permitidos:
             continue
 
         reemplazado = False
@@ -1434,11 +1780,12 @@ def generar_archivo_ics(lista_partidos, nombre_archivo="partidos.ics"):
             if par_prev and " vs " in par_prev:
                 loc_eq, _ = par_prev.split(" vs ", 1)
                 loc_actual = str(comp_prev.get("location", ""))
-                nuevo_loc = (
-                    resolver_pabellon_basket(loc_eq, loc_actual)
-                    if dep_prev == "basket"
-                    else resolver_estadio_futbol(loc_eq, loc_actual)
-                )
+                if dep_prev == "basket":
+                    nuevo_loc = resolver_pabellon_basket(loc_eq, loc_actual)
+                elif dep_prev == "futsal":
+                    nuevo_loc = resolver_pabellon_futsal(loc_eq, loc_actual)
+                else:
+                    nuevo_loc = resolver_estadio_futbol(loc_eq, loc_actual)
                 if nuevo_loc != loc_actual:
                     comp_prev["location"] = nuevo_loc
             eventos_fusionados[uid_prev] = comp_prev
@@ -1464,18 +1811,45 @@ def generar_archivo_ics(lista_partidos, nombre_archivo="partidos.ics"):
             f.write(cal.to_ical())
         print(f"¡ÉXITO! Archivo '{nombre_archivo}' guardado con {len(eventos_fusionados)} eventos ({len(nuevos_eventos_dict)} actualizados hoy).")
     else:
-        print("ALERTA: No hay eventos nuevos ni previos. No se sobrescribe el archivo.")
+        print(f"ALERTA: No hay eventos nuevos ni previos para '{nombre_archivo}'. No se sobrescribe el archivo.")
 
 
-def generar_dashboard_html(nombre_ics="partidos.ics", nombre_html="index.html"):
+def generar_todos_los_calendarios_ics(todos_los_eventos, directorio="."):
+    """
+    Genera todos los archivos .ics modulares para que cada usuario pueda suscribirse
+    exactamente a la combinación de equipos que prefiera:
+    - completo.ics (Málaga CF + Unicaja + Heredia 21 FS)
+    - partidos.ics (Málaga CF + Unicaja)
+    - malaga.ics (Solo Málaga CF)
+    - unicaja.ics (Solo Unicaja)
+    - heredia21.ics (Solo Heredia 21 FS)
+    - malaga_heredia21.ics (Málaga CF + Heredia 21 FS)
+    - unicaja_heredia21.ics (Unicaja + Heredia 21 FS)
+    """
+    rutas_generadas = {}
+    for archivo, cfg in CALENDARIOS_MODULARES.items():
+        ruta = os.path.join(directorio, archivo) if directorio != "." else archivo
+        generar_archivo_ics(
+            todos_los_eventos,
+            nombre_archivo=ruta,
+            calname=cfg["calname"],
+            deportes_permitidos=cfg["deportes"],
+        )
+        rutas_generadas[archivo] = ruta
+    return rutas_generadas
+
+
+def generar_dashboard_html(nombre_ics="completo.ics", nombre_html="index.html"):
     """
     Genera una página web estática moderna (index.html) para GitHub Pages con los
-    próximos partidos, resultados recientes y botones de suscripción al calendario.
+    próximos partidos, resultados recientes y un selector interactivo de suscripción
+    para elegir cualquier combinación de Málaga CF, Unicaja y Heredia 21 Femenino FS.
     """
-    if not os.path.exists(nombre_ics):
+    archivo_lectura = nombre_ics if os.path.exists(nombre_ics) else "partidos.ics"
+    if not os.path.exists(archivo_lectura):
         return
     try:
-        with open(nombre_ics, "rb") as f:
+        with open(archivo_lectura, "rb") as f:
             cal = Calendar.from_ical(f.read())
 
         ahora_utc = datetime.now(dt.timezone.utc)
@@ -1493,8 +1867,7 @@ def generar_dashboard_html(nombre_ics="partidos.ics", nombre_html="index.html"):
                 dt_inicio = dt.datetime.combine(dt_inicio, dt.time(12, 0), tzinfo=TZ_MADRID)
             dt_madrid = dt_inicio.astimezone(TZ_MADRID)
 
-            es_basket = "unicaja" in summary.lower() or "unicaja" in description.lower()
-            deporte = "basket" if es_basket else "futbol"
+            deporte = _detectar_deporte_texto(summary, description, location)
             tiene_res = bool(re.search(r'\(\d+\s*-\s*\d+\)$', summary))
             por_confirmar = "Hora por confirmar" in description
 
@@ -1517,8 +1890,15 @@ def generar_dashboard_html(nombre_ics="partidos.ics", nombre_html="index.html"):
         resultados.sort(key=lambda x: x["dt_madrid"], reverse=True)
 
         def _render_card(it):
-            badge_cls = "badge-basket" if it["deporte"] == "basket" else "badge-futbol"
-            icono = "🏀 Unicaja" if it["deporte"] == "basket" else "⚽ Málaga CF"
+            if it["deporte"] == "basket":
+                badge_cls = "badge-basket"
+                icono = "🏀 Unicaja"
+            elif it["deporte"] == "futsal":
+                badge_cls = "badge-futsal"
+                icono = "🥅 Heredia 21 FS"
+            else:
+                badge_cls = "badge-futbol"
+                icono = "⚽ Málaga CF"
             return (
                 f'<div class="match-card" data-sport="{it["deporte"]}">'
                 f'<div class="match-header"><span class="badge {badge_cls}">{icono}</span>'
@@ -1530,22 +1910,24 @@ def generar_dashboard_html(nombre_ics="partidos.ics", nombre_html="index.html"):
             )
 
         cards_proximos = "\n".join(_render_card(x) for x in proximos)
-        cards_resultados = "\n".join(_render_card(x) for x in resultados[:20])
+        cards_resultados = "\n".join(_render_card(x) for x in resultados[:24])
 
         html_content = f"""<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calendario Málaga CF y Unicaja Baloncesto</title>
+  <title>Calendario Deportivo Málaga: Málaga CF, Unicaja y Heredia 21 FS</title>
   <style>
     :root {{
       --bg: #0f172a;
       --card: #1e293b;
+      --card-alt: #162032;
       --text: #f8fafc;
       --muted: #94a3b8;
       --malaga: #0072ce;
       --unicaja: #009639;
+      --heredia: #db2777;
       --border: #334155;
     }}
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -1556,37 +1938,91 @@ def generar_dashboard_html(nombre_ics="partidos.ics", nombre_html="index.html"):
       line-height: 1.5;
       padding: 2rem 1rem;
     }}
-    .container {{ max-width: 1000px; margin: 0 auto; }}
+    .container {{ max-width: 1040px; margin: 0 auto; }}
     header {{
       text-align: center;
       margin-bottom: 2rem;
-      padding: 2rem;
-      background: linear-gradient(135deg, rgba(0,114,206,0.25), rgba(0,150,57,0.25));
+      padding: 2rem 1.5rem;
+      background: linear-gradient(135deg, rgba(0,114,206,0.22), rgba(0,150,57,0.22), rgba(219,39,119,0.18));
       border: 1px solid var(--border);
       border-radius: 1rem;
     }}
-    h1 {{ font-size: 1.9rem; margin-bottom: 0.5rem; }}
-    .subtitle {{ color: var(--muted); margin-bottom: 1.25rem; }}
-    .actions {{ display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }}
+    h1 {{ font-size: 1.85rem; margin-bottom: 0.4rem; }}
+    .subtitle {{ color: var(--muted); margin-bottom: 1.35rem; font-size: 0.96rem; }}
+    .customizer {{
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      padding: 1.25rem;
+      max-width: 780px;
+      margin: 0 auto;
+    }}
+    .customizer-title {{
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: #e2e8f0;
+    }}
+    .team-toggles {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      justify-content: center;
+      margin-bottom: 0.9rem;
+    }}
+    .team-toggle {{
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.5rem 1rem;
+      border-radius: 2rem;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      user-select: none;
+      transition: all 0.15s;
+    }}
+    .team-toggle input {{ accent-color: #38bdf8; width: 1rem; height: 1rem; cursor: pointer; }}
+    .team-toggle.checked-futbol {{ border-color: #38bdf8; color: #f8fafc; background: rgba(0,114,206,0.28); }}
+    .team-toggle.checked-basket {{ border-color: #4ade80; color: #f8fafc; background: rgba(0,150,57,0.28); }}
+    .team-toggle.checked-futsal {{ border-color: #f472b6; color: #f8fafc; background: rgba(219,39,119,0.28); }}
+    .selected-feed-info {{
+      font-size: 0.84rem;
+      color: #cbd5e1;
+      margin-bottom: 0.95rem;
+    }}
+    .selected-feed-info code {{
+      background: rgba(255,255,255,0.08);
+      padding: 0.15rem 0.45rem;
+      border-radius: 0.35rem;
+      color: #38bdf8;
+      font-weight: 600;
+    }}
+    .actions {{ display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: center; }}
     .btn {{
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      padding: 0.65rem 1.2rem;
+      padding: 0.65rem 1.15rem;
       border-radius: 0.5rem;
       font-weight: 600;
+      font-size: 0.9rem;
       text-decoration: none;
       cursor: pointer;
       border: 1px solid var(--border);
       background: var(--card);
       color: var(--text);
-      transition: transform 0.15s, border-color 0.15s;
+      transition: transform 0.15s, border-color 0.15s, opacity 0.15s;
     }}
     .btn:hover {{ transform: translateY(-2px); border-color: #64748b; }}
     .btn-primary {{ background: var(--malaga); border-color: var(--malaga); }}
     .btn-success {{ background: var(--unicaja); border-color: var(--unicaja); }}
     .filters {{
       display: flex;
+      flex-wrap: wrap;
       gap: 0.5rem;
       justify-content: center;
       margin-bottom: 1.5rem;
@@ -1620,6 +2056,7 @@ def generar_dashboard_html(nombre_ics="partidos.ics", nombre_html="index.html"):
     .badge {{ padding: 0.15rem 0.6rem; border-radius: 1rem; font-weight: 600; font-size: 0.78rem; }}
     .badge-futbol {{ background: rgba(0,114,206,0.25); color: #60a5fa; }}
     .badge-basket {{ background: rgba(0,150,57,0.25); color: #4ade80; }}
+    .badge-futsal {{ background: rgba(219,39,119,0.25); color: #f472b6; }}
     .match-date {{ color: var(--muted); font-weight: 500; }}
     .match-title {{ font-size: 1.05rem; font-weight: 700; margin-top: 0.2rem; }}
     .match-loc {{ font-size: 0.88rem; color: #cbd5e1; }}
@@ -1629,12 +2066,36 @@ def generar_dashboard_html(nombre_ics="partidos.ics", nombre_html="index.html"):
 <body>
   <div class="container">
     <header>
-      <h1>⚽ Málaga CF & 🏀 Unicaja Baloncesto</h1>
+      <h1>⚽ Málaga CF · 🏀 Unicaja · 🥅 Heredia 21 FS</h1>
       <p class="subtitle">Calendario sincronizado automáticamente ({len(proximos)} próximos partidos · {len(resultados)} resultados registrados)</p>
-      <div class="actions">
-        <a class="btn btn-primary" href="https://calendar.google.com/calendar/r?cid=webcal://espimlg.github.io/sportsmlgcalendar/partidos.ics" target="_blank" rel="noopener">📅 Añadir a Google Calendar</a>
-        <a class="btn btn-success" href="webcal://espimlg.github.io/sportsmlgcalendar/partidos.ics">🍏 Suscribirse en Apple / Outlook</a>
-        <a class="btn" href="partidos.ics" download>⬇️ Descargar partidos.ics</a>
+
+      <div class="customizer">
+        <div class="customizer-title">1. Elige a qué equipos quieres suscribirte en tu calendario:</div>
+        <div class="team-toggles">
+          <label class="team-toggle checked-futbol" id="lbl-futbol">
+            <input type="checkbox" id="chk-futbol" checked onchange="actualizarSuscripcion()" />
+            ⚽ Málaga CF
+          </label>
+          <label class="team-toggle checked-basket" id="lbl-basket">
+            <input type="checkbox" id="chk-basket" checked onchange="actualizarSuscripcion()" />
+            🏀 Unicaja Baloncesto
+          </label>
+          <label class="team-toggle checked-futsal" id="lbl-futsal">
+            <input type="checkbox" id="chk-futsal" checked onchange="actualizarSuscripcion()" />
+            🥅 Heredia 21 Femenino FS
+          </label>
+        </div>
+
+        <div class="selected-feed-info" id="feed-status">
+          Suscripción seleccionada: <strong id="feed-label">Málaga CF + Unicaja + Heredia 21 FS</strong> (<code id="feed-file">completo.ics</code>)
+        </div>
+
+        <div class="actions" id="subscription-actions">
+          <a class="btn btn-primary" id="btn-gcal" href="https://calendar.google.com/calendar/r?cid=webcal://espimlg.github.io/sportsmlgcalendar/completo.ics" target="_blank" rel="noopener">📅 Añadir a Google Calendar</a>
+          <a class="btn btn-success" id="btn-webcal" href="webcal://espimlg.github.io/sportsmlgcalendar/completo.ics">🍏 Suscribirse en Apple / Outlook</a>
+          <a class="btn" id="btn-download" href="completo.ics" download>⬇️ Descargar .ics</a>
+          <button class="btn" id="btn-copy" type="button" onclick="copiarEnlace()">📋 Copiar URL</button>
+        </div>
       </div>
     </header>
 
@@ -1642,6 +2103,7 @@ def generar_dashboard_html(nombre_ics="partidos.ics", nombre_html="index.html"):
       <button class="filter-btn active" onclick="filtrar('all', this)">Todos ({len(proximos) + len(resultados)})</button>
       <button class="filter-btn" onclick="filtrar('futbol', this)">⚽ Málaga CF</button>
       <button class="filter-btn" onclick="filtrar('basket', this)">🏀 Unicaja</button>
+      <button class="filter-btn" onclick="filtrar('futsal', this)">🥅 Heredia 21 FS</button>
     </div>
 
     <h2>Próximos Partidos ({len(proximos)})</h2>
@@ -1655,6 +2117,70 @@ def generar_dashboard_html(nombre_ics="partidos.ics", nombre_html="index.html"):
     </div>
   </div>
   <script>
+    const BASE_HOST = "espimlg.github.io/sportsmlgcalendar";
+    const MAPA_CALENDARIOS = {{
+      "1-1-1": {{ file: "completo.ics", label: "Málaga CF + Unicaja + Heredia 21 FS" }},
+      "1-1-0": {{ file: "partidos.ics", label: "Málaga CF + Unicaja" }},
+      "1-0-0": {{ file: "malaga.ics", label: "Solo Málaga CF" }},
+      "0-1-0": {{ file: "unicaja.ics", label: "Solo Unicaja Baloncesto" }},
+      "0-0-1": {{ file: "heredia21.ics", label: "Solo Heredia 21 Femenino FS" }},
+      "1-0-1": {{ file: "malaga_heredia21.ics", label: "Málaga CF + Heredia 21 FS" }},
+      "0-1-1": {{ file: "unicaja_heredia21.ics", label: "Unicaja + Heredia 21 FS" }}
+    }};
+
+    function actualizarSuscripcion() {{
+      const f = document.getElementById('chk-futbol').checked;
+      const b = document.getElementById('chk-basket').checked;
+      const s = document.getElementById('chk-futsal').checked;
+
+      document.getElementById('lbl-futbol').classList.toggle('checked-futbol', f);
+      document.getElementById('lbl-basket').classList.toggle('checked-basket', b);
+      document.getElementById('lbl-futsal').classList.toggle('checked-futsal', s);
+
+      const key = `${{f ? 1 : 0}}-${{b ? 1 : 0}}-${{s ? 1 : 0}}`;
+      const actionsDiv = document.getElementById('subscription-actions');
+      const statusDiv = document.getElementById('feed-status');
+
+      if (!MAPA_CALENDARIOS[key]) {{
+        statusDiv.innerHTML = '<span style="color:#f87171;">Selecciona al menos un equipo para generar tu enlace de suscripción.</span>';
+        actionsDiv.style.opacity = '0.4';
+        actionsDiv.style.pointerEvents = 'none';
+        return;
+      }}
+
+      actionsDiv.style.opacity = '1';
+      actionsDiv.style.pointerEvents = 'auto';
+      const cfg = MAPA_CALENDARIOS[key];
+      statusDiv.innerHTML = `Suscripción seleccionada: <strong id="feed-label">${{cfg.label}}</strong> (<code id="feed-file">${{cfg.file}}</code>)`;
+
+      const webcalUrl = `webcal://${{BASE_HOST}}/${{cfg.file}}`;
+      document.getElementById('btn-gcal').href = `https://calendar.google.com/calendar/r?cid=${{webcalUrl}}`;
+      document.getElementById('btn-webcal').href = webcalUrl;
+      document.getElementById('btn-download').href = cfg.file;
+
+      // Filtrar tarjetas visualmente según los equipos marcados
+      const deportesActivos = new Set();
+      if (f) deportesActivos.add('futbol');
+      if (b) deportesActivos.add('basket');
+      if (s) deportesActivos.add('futsal');
+
+      document.querySelectorAll('.match-card').forEach(card => {{
+        card.style.display = deportesActivos.has(card.dataset.sport) ? 'flex' : 'none';
+      }});
+    }}
+
+    function copiarEnlace() {{
+      const fileEl = document.getElementById('feed-file');
+      const archivo = fileEl ? fileEl.textContent : 'completo.ics';
+      const url = `https://${{BASE_HOST}}/${{archivo}}`;
+      navigator.clipboard.writeText(url).then(() => {{
+        const btn = document.getElementById('btn-copy');
+        const original = btn.textContent;
+        btn.textContent = '✅ ¡Enlace copiado!';
+        setTimeout(() => {{ btn.textContent = original; }}, 2000);
+      }});
+    }}
+
     function filtrar(deporte, btn) {{
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -1741,14 +2267,21 @@ if __name__ == "__main__":
             print(f"ERROR GRAVE scrape resultados Unicaja: {e}")
         print("--- Fin scrape de Unicaja ---")
 
-        print("\n--- Iniciando generación de ICS ---")
+        print("\n--- Iniciando scrape de Heredia 21 Femenino FS (RFAF) ---")
+        try:
+            todos_los_eventos.extend(obtener_partidos_heredia21_rfaf(driver))
+        except Exception as e:
+            print(f"ERROR GRAVE scrape Heredia 21 FS: {e}")
+        print("--- Fin scrape de Heredia 21 Femenino FS ---")
+
+        print("\n--- Iniciando generación de calendarios ICS modulares ---")
         if todos_los_eventos:
             print(f"Total de eventos encontrados en esta ejecución: {len(todos_los_eventos)}")
         else:
             print("No se encontró info nueva en esta ejecución.")
-        generar_archivo_ics(todos_los_eventos, "partidos.ics")
-        generar_dashboard_html("partidos.ics", "index.html")
-        print("--- Fin generación de ICS ---")
+        generar_todos_los_calendarios_ics(todos_los_eventos)
+        generar_dashboard_html("completo.ics", "index.html")
+        print("--- Fin generación de calendarios ICS y Dashboard ---")
     except Exception as e:
         print(f"Error general no recuperable: {e}")
     finally:

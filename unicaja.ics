@@ -1,0 +1,407 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//SportsMLGCalendar//espi.mlg//ES
+CALSCALE:GREGORIAN
+X-WR-CALNAME:Calendario Unicaja Baloncesto
+X-WR-TIMEZONE:Europe/Madrid
+BEGIN:VEVENT
+SUMMARY:Real Madrid vs Unicaja (89 - 87)
+DTSTART:20260927T170000Z
+DTEND:20260927T190000Z
+DTSTAMP:20261118T102604Z
+UID:20260927-RealMadridvsUnicaja@sportsmlg.com
+DESCRIPTION:Resultado Unicaja: 89 - 87 | Liga Endesa (Liga Regular\, Jorna
+ da 1)
+LOCATION:Movistar Arena
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs La Laguna Tenerife (75 - 80)
+DTSTART:20261003T173000Z
+DTEND:20261003T193000Z
+DTSTAMP:20261118T102604Z
+UID:20261003-UnicajavsLaLagunaTenerife@sportsmlg.com
+DESCRIPTION:Resultado Unicaja: 75 - 80 | Liga Endesa (Liga Regular\, Jorna
+ da 2)
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:BC Juventus Utena vs Unicaja (69 - 105)
+DTSTART:20261007T170000Z
+DTEND:20261007T190000Z
+DTSTAMP:20261118T102604Z
+UID:20261007-BCJuventusUtenavsUnicaja@sportsmlg.com
+DESCRIPTION:Resultado Unicaja: 69 - 105 | Basketball Champions League (Lig
+ a Regular\, Jornada 1)
+LOCATION:Vilnius Arena
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs MoraBanc Andorra (92 - 84)
+DTSTART:20261010T173000Z
+DTEND:20261010T193000Z
+DTSTAMP:20261118T102604Z
+UID:20261010-UnicajavsMoraBancAndorra@sportsmlg.com
+DESCRIPTION:Resultado Unicaja: 92 - 84 | Liga Endesa (Liga Regular\, Jorna
+ da 3)
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Kids&Us Manresa vs Unicaja (72 - 84)
+DTSTART:20261017T160000Z
+DTEND:20261017T180000Z
+DTSTAMP:20261118T102604Z
+UID:20261017-Kids&UsManresavsUnicaja@sportsmlg.com
+DESCRIPTION:Resultado Unicaja: 72 - 84 | Liga Endesa (Liga Regular\, Jorna
+ da 4)
+LOCATION:Pavelló Nou Congost
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:BK Kvis Pardubice vs Unicaja (63 - 79)
+DTSTART:20261020T160000Z
+DTEND:20261020T180000Z
+DTSTAMP:20261118T102604Z
+UID:20261020-BKKvisPardubicevsUnicaja@sportsmlg.com
+DESCRIPTION:Resultado Unicaja: 63 - 79 | Basketball Champions League (Liga
+  Regular\, Jornada 2)
+LOCATION:Enteria Arena
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Río Breogán vs Unicaja (90 - 103)
+DTSTART:20261025T170000Z
+DTEND:20261025T190000Z
+DTSTAMP:20261118T102604Z
+UID:20261025-RíoBreogánvsUnicaja@sportsmlg.com
+DESCRIPTION:Resultado Unicaja: 90 - 103 | Liga Endesa (Liga Regular\, Jorn
+ ada 5)
+LOCATION:Pazo Provincial dos Deportes de Lugo
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs Barça (89 - 92)
+DTSTART:20261101T180000Z
+DTEND:20261101T200000Z
+DTSTAMP:20261118T102604Z
+UID:20261101-UnicajavsBarça@sportsmlg.com
+DESCRIPTION:Resultado Unicaja: 89 - 92 | Liga Endesa (Liga Regular\, Jorna
+ da 6)
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs Pallacanestro Reggiana (99 - 94)
+DTSTART:20261103T193000Z
+DTEND:20261103T213000Z
+DTSTAMP:20261118T102604Z
+UID:20261103-UnicajavsPallacanestroReggiana@sportsmlg.com
+DESCRIPTION:Resultado Unicaja: 99 - 94 | Basketball Champions League (Liga
+  Regular\, Jornada 3)
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Casademont Zaragoza vs Unicaja (96 - 91)
+DTSTART:20261108T160000Z
+DTEND:20261108T180000Z
+DTSTAMP:20261118T102604Z
+UID:20261108-CasademontZaragozavsUnicaja@sportsmlg.com
+DESCRIPTION:Resultado Unicaja: 96 - 91 | Liga Endesa (Liga Regular\, Jorna
+ da 7)
+LOCATION:Pabellón Príncipe Felipe
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs FIATC Girona (82 - 70)
+DTSTART:20261115T113000Z
+DTEND:20261115T133000Z
+DTSTAMP:20261118T102604Z
+UID:20261115-UnicajavsFIATCGirona@sportsmlg.com
+DESCRIPTION:Resultado Unicaja: 82 - 70 | Liga Endesa (Liga Regular\, Jorna
+ da 8)
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs BK Kvis Pardubice
+DTSTART:20261118T193000Z
+DTEND:20261118T213000Z
+DTSTAMP:20261118T102604Z
+UID:20261118-UnicajavsBKKvisPardubice@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Basketball Champions League (Liga Re
+ gular\, 1ª Fase))
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Recoletas Salud San Pablo Burgos vs Unicaja
+DTSTART:20261121T170000Z
+DTEND:20261121T190000Z
+DTSTAMP:20261118T102604Z
+UID:20261121-RecoletasSaludSanPabloBurgosvsUnicaja@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 9))
+LOCATION:Coliseum Burgos
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs Valencia Basket
+DTSTART:20261206T180000Z
+DTEND:20261206T200000Z
+DTSTAMP:20261118T102604Z
+UID:20261206-UnicajavsValenciaBasket@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 10))
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:UCAM Murcia vs Unicaja
+DTSTART:20261210T200000Z
+DTEND:20261210T220000Z
+DTSTAMP:20261118T102604Z
+UID:20261210-UCAMMurciavsUnicaja@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 11))
+LOCATION:Palacio Municipal de Deportes de Murcia
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:iLERNA Lleida vs Unicaja
+DTSTART:20261213T113000Z
+DTEND:20261213T133000Z
+DTSTAMP:20261118T102604Z
+UID:20261213-iLERNALleidavsUnicaja@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 12))
+LOCATION:Pabellón Barris Nord
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Pallacanestro Reggiana vs Unicaja
+DTSTART:20261215T190000Z
+DTEND:20261215T210000Z
+DTSTAMP:20261118T102604Z
+UID:20261215-PallacanestroReggianavsUnicaja@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Basketball Champions League (Liga Re
+ gular\, Jornada 5))
+LOCATION:Palabigi
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs Asisa Joventut
+DTSTART:20261219T183000Z
+DTEND:20261219T203000Z
+DTSTAMP:20261118T102604Z
+UID:20261219-UnicajavsAsisaJoventut@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 13))
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs BC Juventus Utena
+DTSTART:20261223T193000Z
+DTEND:20261223T213000Z
+DTSTAMP:20261118T102604Z
+UID:20261223-UnicajavsBCJuventusUtena@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Basketball Champions League (Liga Re
+ gular\, 1ª Fase))
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Leyma Coruña vs Unicaja
+DTSTART:20261227T153000Z
+DTEND:20261227T173000Z
+DTSTAMP:20261118T102604Z
+UID:20261227-LeymaCoruñavsUnicaja@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 14))
+LOCATION:Coliseum La Coruña
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs Monbus Obradoiro
+DTSTART:20261230T200000Z
+DTEND:20261230T220000Z
+DTSTAMP:20261118T102604Z
+UID:20261230-UnicajavsMonbusObradoiro@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 15))
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs Surne Bilbao
+DTSTART:20270102T183000Z
+DTEND:20270102T203000Z
+DTSTAMP:20261118T102604Z
+UID:20270102-UnicajavsSurneBilbao@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 16))
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Kosner Baskonia vs Unicaja
+DTSTART:20270110T180000Z
+DTEND:20270110T200000Z
+DTSTAMP:20261118T102604Z
+UID:20270110-KosnerBaskoniavsUnicaja@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 17))
+LOCATION:Fernando Buesa Arena
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Barça vs Unicaja
+DTSTART:20270117T180000Z
+DTEND:20270117T200000Z
+DTSTAMP:20261118T102604Z
+UID:20270117-BarçavsUnicaja@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 18))
+LOCATION:Palau Blaugrana
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs Recoletas Salud San Pablo Burgos
+DTSTART:20270123T183000Z
+DTEND:20270123T203000Z
+DTSTAMP:20261118T102604Z
+UID:20270123-UnicajavsRecoletasSaludSanPabloBurgos@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 19))
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs Río Breogán
+DTSTART:20270131T113000Z
+DTEND:20270131T133000Z
+DTSTAMP:20261118T102604Z
+UID:20270131-UnicajavsRíoBreogán@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 20))
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:FIATC Girona vs Unicaja
+DTSTART:20270206T200000Z
+DTEND:20270206T220000Z
+DTSTAMP:20261118T102604Z
+UID:20270206-FIATCGironavsUnicaja@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 21))
+LOCATION:Pavelló Girona Fontajau
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs UCAM Murcia
+DTSTART:20270214T170000Z
+DTEND:20270214T190000Z
+DTSTAMP:20261118T102604Z
+UID:20270214-UnicajavsUCAMMurcia@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 22))
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Asisa Joventut vs Unicaja
+DTSTART:20270307T160000Z
+DTEND:20270307T180000Z
+DTSTAMP:20261118T102604Z
+UID:20270307-AsisaJoventutvsUnicaja@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 23))
+LOCATION:Palau Olimpic de Badalona
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:MoraBanc Andorra vs Unicaja
+DTSTART:20270313T183000Z
+DTEND:20270313T203000Z
+DTSTAMP:20261118T102604Z
+UID:20270313-MoraBancAndorravsUnicaja@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 24))
+LOCATION:Pavelló Toni Martí
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs Kosner Baskonia
+DTSTART:20270320T200000Z
+DTEND:20270320T220000Z
+DTSTAMP:20261118T102604Z
+UID:20270320-UnicajavsKosnerBaskonia@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 25))
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs iLERNA Lleida
+DTSTART:20270328T103000Z
+DTEND:20270328T123000Z
+DTSTAMP:20261118T102604Z
+UID:20270328-UnicajavsiLERNALleida@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 26))
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:La Laguna Tenerife vs Unicaja
+DTSTART:20270403T173000Z
+DTEND:20270403T193000Z
+DTSTAMP:20261118T102604Z
+UID:20270403-LaLagunaTenerifevsUnicaja@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 27))
+LOCATION:Pabellón Insular Santiago Martín
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs Kids&Us Manresa
+DTSTART:20270410T160000Z
+DTEND:20270410T180000Z
+DTSTAMP:20261118T102604Z
+UID:20270410-UnicajavsKids&UsManresa@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 28))
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs Casademont Zaragoza
+DTSTART:20270417T173000Z
+DTEND:20270417T193000Z
+DTSTAMP:20261118T102604Z
+UID:20270417-UnicajavsCasademontZaragoza@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 29))
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Monbus Obradoiro vs Unicaja
+DTSTART:20270425T100000Z
+DTEND:20270425T120000Z
+DTSTAMP:20261118T102604Z
+UID:20270425-MonbusObradoirovsUnicaja@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 30))
+LOCATION:Fontes do Sar
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Valencia Basket vs Unicaja
+DTSTART:20270502T103000Z
+DTEND:20270502T123000Z
+DTSTAMP:20261118T102604Z
+UID:20270502-ValenciaBasketvsUnicaja@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 31))
+LOCATION:Roig Arena
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs Real Madrid
+DTSTART:20270509T170000Z
+DTEND:20270509T190000Z
+DTSTAMP:20261118T102604Z
+UID:20270509-UnicajavsRealMadrid@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 32))
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Surne Bilbao vs Unicaja
+DTSTART:20270515T160000Z
+DTEND:20270515T180000Z
+DTSTAMP:20261118T102604Z
+UID:20270515-SurneBilbaovsUnicaja@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 33))
+LOCATION:Bilbao Arena
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unicaja vs Leyma Coruña
+DTSTART:20270521T010000Z
+DTEND:20270521T030000Z
+DTSTAMP:20261118T102604Z
+UID:20270521-UnicajavsLeymaCoruña@sportsmlg.com
+DESCRIPTION:Próximo partido Unicaja (Liga Endesa (Liga Regular\, Jornada 
+ 34)) (Hora por confirmar)
+LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
+END:VEVENT
+END:VCALENDAR

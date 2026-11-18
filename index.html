@@ -3,15 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calendario Málaga CF y Unicaja Baloncesto</title>
+  <title>Calendario Deportivo Málaga: Málaga CF, Unicaja y Heredia 21 FS</title>
   <style>
     :root {
       --bg: #0f172a;
       --card: #1e293b;
+      --card-alt: #162032;
       --text: #f8fafc;
       --muted: #94a3b8;
       --malaga: #0072ce;
       --unicaja: #009639;
+      --heredia: #db2777;
       --border: #334155;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -22,37 +24,91 @@
       line-height: 1.5;
       padding: 2rem 1rem;
     }
-    .container { max-width: 1000px; margin: 0 auto; }
+    .container { max-width: 1040px; margin: 0 auto; }
     header {
       text-align: center;
       margin-bottom: 2rem;
-      padding: 2rem;
-      background: linear-gradient(135deg, rgba(0,114,206,0.25), rgba(0,150,57,0.25));
+      padding: 2rem 1.5rem;
+      background: linear-gradient(135deg, rgba(0,114,206,0.22), rgba(0,150,57,0.22), rgba(219,39,119,0.18));
       border: 1px solid var(--border);
       border-radius: 1rem;
     }
-    h1 { font-size: 1.9rem; margin-bottom: 0.5rem; }
-    .subtitle { color: var(--muted); margin-bottom: 1.25rem; }
-    .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
+    h1 { font-size: 1.85rem; margin-bottom: 0.4rem; }
+    .subtitle { color: var(--muted); margin-bottom: 1.35rem; font-size: 0.96rem; }
+    .customizer {
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      padding: 1.25rem;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    .customizer-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: #e2e8f0;
+    }
+    .team-toggles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      justify-content: center;
+      margin-bottom: 0.9rem;
+    }
+    .team-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.5rem 1rem;
+      border-radius: 2rem;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      user-select: none;
+      transition: all 0.15s;
+    }
+    .team-toggle input { accent-color: #38bdf8; width: 1rem; height: 1rem; cursor: pointer; }
+    .team-toggle.checked-futbol { border-color: #38bdf8; color: #f8fafc; background: rgba(0,114,206,0.28); }
+    .team-toggle.checked-basket { border-color: #4ade80; color: #f8fafc; background: rgba(0,150,57,0.28); }
+    .team-toggle.checked-futsal { border-color: #f472b6; color: #f8fafc; background: rgba(219,39,119,0.28); }
+    .selected-feed-info {
+      font-size: 0.84rem;
+      color: #cbd5e1;
+      margin-bottom: 0.95rem;
+    }
+    .selected-feed-info code {
+      background: rgba(255,255,255,0.08);
+      padding: 0.15rem 0.45rem;
+      border-radius: 0.35rem;
+      color: #38bdf8;
+      font-weight: 600;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: center; }
     .btn {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      padding: 0.65rem 1.2rem;
+      padding: 0.65rem 1.15rem;
       border-radius: 0.5rem;
       font-weight: 600;
+      font-size: 0.9rem;
       text-decoration: none;
       cursor: pointer;
       border: 1px solid var(--border);
       background: var(--card);
       color: var(--text);
-      transition: transform 0.15s, border-color 0.15s;
+      transition: transform 0.15s, border-color 0.15s, opacity 0.15s;
     }
     .btn:hover { transform: translateY(-2px); border-color: #64748b; }
     .btn-primary { background: var(--malaga); border-color: var(--malaga); }
     .btn-success { background: var(--unicaja); border-color: var(--unicaja); }
     .filters {
       display: flex;
+      flex-wrap: wrap;
       gap: 0.5rem;
       justify-content: center;
       margin-bottom: 1.5rem;
@@ -86,6 +142,7 @@
     .badge { padding: 0.15rem 0.6rem; border-radius: 1rem; font-weight: 600; font-size: 0.78rem; }
     .badge-futbol { background: rgba(0,114,206,0.25); color: #60a5fa; }
     .badge-basket { background: rgba(0,150,57,0.25); color: #4ade80; }
+    .badge-futsal { background: rgba(219,39,119,0.25); color: #f472b6; }
     .match-date { color: var(--muted); font-weight: 500; }
     .match-title { font-size: 1.05rem; font-weight: 700; margin-top: 0.2rem; }
     .match-loc { font-size: 0.88rem; color: #cbd5e1; }
@@ -95,57 +152,96 @@
 <body>
   <div class="container">
     <header>
-      <h1>⚽ Málaga CF & 🏀 Unicaja Baloncesto</h1>
-      <p class="subtitle">Calendario sincronizado automáticamente (55 próximos partidos · 24 resultados registrados)</p>
-      <div class="actions">
-        <a class="btn btn-primary" href="https://calendar.google.com/calendar/r?cid=webcal://espimlg.github.io/sportsmlgcalendar/partidos.ics" target="_blank" rel="noopener">📅 Añadir a Google Calendar</a>
-        <a class="btn btn-success" href="webcal://espimlg.github.io/sportsmlgcalendar/partidos.ics">🍏 Suscribirse en Apple / Outlook</a>
-        <a class="btn" href="partidos.ics" download>⬇️ Descargar partidos.ics</a>
+      <h1>⚽ Málaga CF · 🏀 Unicaja · 🥅 Heredia 21 FS</h1>
+      <p class="subtitle">Calendario sincronizado automáticamente (69 próximos partidos · 28 resultados registrados)</p>
+
+      <div class="customizer">
+        <div class="customizer-title">1. Elige a qué equipos quieres suscribirte en tu calendario:</div>
+        <div class="team-toggles">
+          <label class="team-toggle checked-futbol" id="lbl-futbol">
+            <input type="checkbox" id="chk-futbol" checked onchange="actualizarSuscripcion()" />
+            ⚽ Málaga CF
+          </label>
+          <label class="team-toggle checked-basket" id="lbl-basket">
+            <input type="checkbox" id="chk-basket" checked onchange="actualizarSuscripcion()" />
+            🏀 Unicaja Baloncesto
+          </label>
+          <label class="team-toggle checked-futsal" id="lbl-futsal">
+            <input type="checkbox" id="chk-futsal" checked onchange="actualizarSuscripcion()" />
+            🥅 Heredia 21 Femenino FS
+          </label>
+        </div>
+
+        <div class="selected-feed-info" id="feed-status">
+          Suscripción seleccionada: <strong id="feed-label">Málaga CF + Unicaja + Heredia 21 FS</strong> (<code id="feed-file">completo.ics</code>)
+        </div>
+
+        <div class="actions" id="subscription-actions">
+          <a class="btn btn-primary" id="btn-gcal" href="https://calendar.google.com/calendar/r?cid=webcal://espimlg.github.io/sportsmlgcalendar/completo.ics" target="_blank" rel="noopener">📅 Añadir a Google Calendar</a>
+          <a class="btn btn-success" id="btn-webcal" href="webcal://espimlg.github.io/sportsmlgcalendar/completo.ics">🍏 Suscribirse en Apple / Outlook</a>
+          <a class="btn" id="btn-download" href="completo.ics" download>⬇️ Descargar .ics</a>
+          <button class="btn" id="btn-copy" type="button" onclick="copiarEnlace()">📋 Copiar URL</button>
+        </div>
       </div>
     </header>
 
     <div class="filters">
-      <button class="filter-btn active" onclick="filtrar('all', this)">Todos (79)</button>
+      <button class="filter-btn active" onclick="filtrar('all', this)">Todos (97)</button>
       <button class="filter-btn" onclick="filtrar('futbol', this)">⚽ Málaga CF</button>
       <button class="filter-btn" onclick="filtrar('basket', this)">🏀 Unicaja</button>
+      <button class="filter-btn" onclick="filtrar('futsal', this)">🥅 Heredia 21 FS</button>
     </div>
 
-    <h2>Próximos Partidos (55)</h2>
+    <h2>Próximos Partidos (69)</h2>
     <div class="grid">
       <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">18/11/2026 · 20:30</span></div><div class="match-title">Unicaja vs BK Kvis Pardubice</div><div class="match-loc">📍 Palacio de Deportes José María Martín Carpena, Málaga</div><div class="match-desc">Próximo partido Unicaja (Basketball Champions League (Liga Regular, 1ª Fase))</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">20/11/2026 · 21:30</span></div><div class="match-title">CD Torre de Casabermeja vs Heredia 21 FS</div><div class="match-loc">📍 Pabellón Municipal de Casabermeja, Málaga</div><div class="match-desc">Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J5)</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">21/11/2026 · 18:00</span></div><div class="match-title">Recoletas Salud San Pablo Burgos vs Unicaja</div><div class="match-loc">📍 Coliseum Burgos</div><div class="match-desc">Próximo partido Unicaja (Liga Endesa (Liga Regular, Jornada 9))</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">22/11/2026 · 18:30</span></div><div class="match-title">CA Osasuna vs Málaga CF</div><div class="match-loc">📍 El Sadar</div><div class="match-desc">Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 13)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">28/11/2026 · 16:15</span></div><div class="match-title">Málaga CF vs Athletic Club</div><div class="match-loc">📍 Estadio La Rosaleda, Málaga</div><div class="match-desc">Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 14)</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">29/11/2026 · Por confirmar</span></div><div class="match-title">Heredia 21 FS vs CV AV El Torcal</div><div class="match-loc">📍 Ciudad Deportiva de Carranque (Pabellón), Málaga</div><div class="match-desc">Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J6) (Hora por confirmar)</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">06/12/2026 · Por confirmar</span></div><div class="match-title">CF Arriate vs Heredia 21 FS</div><div class="match-loc">📍 Pabellón Municipal de Arriate, Málaga</div><div class="match-desc">Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J7) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">06/12/2026 · 19:00</span></div><div class="match-title">Unicaja vs Valencia Basket</div><div class="match-loc">📍 Palacio de Deportes José María Martín Carpena, Málaga</div><div class="match-desc">Próximo partido Unicaja (Liga Endesa (Liga Regular, Jornada 10))</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">07/12/2026 · 21:00</span></div><div class="match-title">Sevilla FC vs Málaga CF</div><div class="match-loc">📍 Ramón Sánchez-Pizjuán</div><div class="match-desc">Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 15)</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">10/12/2026 · 21:00</span></div><div class="match-title">UCAM Murcia vs Unicaja</div><div class="match-loc">📍 Palacio Municipal de Deportes de Murcia</div><div class="match-desc">Próximo partido Unicaja (Liga Endesa (Liga Regular, Jornada 11))</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">13/12/2026 · Por confirmar</span></div><div class="match-title">Club Torremolinos FS vs Heredia 21 FS</div><div class="match-loc">📍 Pabellón Municipal San Miguel, Torremolinos (Málaga)</div><div class="match-desc">Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J8) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">13/12/2026 · Por confirmar</span></div><div class="match-title">Málaga CF vs FC Barcelona</div><div class="match-loc">📍 Estadio La Rosaleda, Málaga</div><div class="match-desc">Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 16) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">13/12/2026 · 12:30</span></div><div class="match-title">iLERNA Lleida vs Unicaja</div><div class="match-loc">📍 Pabellón Barris Nord</div><div class="match-desc">Próximo partido Unicaja (Liga Endesa (Liga Regular, Jornada 12))</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">15/12/2026 · 20:00</span></div><div class="match-title">Pallacanestro Reggiana vs Unicaja</div><div class="match-loc">📍 Palabigi</div><div class="match-desc">Próximo partido Unicaja (Basketball Champions League (Liga Regular, Jornada 5))</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">19/12/2026 · 19:30</span></div><div class="match-title">Unicaja vs Asisa Joventut</div><div class="match-loc">📍 Palacio de Deportes José María Martín Carpena, Málaga</div><div class="match-desc">Próximo partido Unicaja (Liga Endesa (Liga Regular, Jornada 13))</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">20/12/2026 · Por confirmar</span></div><div class="match-title">Heredia 21 FS vs CD Sampedreño Futsal</div><div class="match-loc">📍 Ciudad Deportiva de Carranque (Pabellón), Málaga</div><div class="match-desc">Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J9) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">20/12/2026 · Por confirmar</span></div><div class="match-title">Rayo Vallecano vs Málaga CF</div><div class="match-loc">📍 Estadio de Vallecas</div><div class="match-desc">Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 17) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">23/12/2026 · 20:30</span></div><div class="match-title">Unicaja vs BC Juventus Utena</div><div class="match-loc">📍 Palacio de Deportes José María Martín Carpena, Málaga</div><div class="match-desc">Próximo partido Unicaja (Basketball Champions League (Liga Regular, 1ª Fase))</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">27/12/2026 · 16:30</span></div><div class="match-title">Leyma Coruña vs Unicaja</div><div class="match-loc">📍 Coliseum La Coruña</div><div class="match-desc">Próximo partido Unicaja (Liga Endesa (Liga Regular, Jornada 14))</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">30/12/2026 · 21:00</span></div><div class="match-title">Unicaja vs Monbus Obradoiro</div><div class="match-loc">📍 Palacio de Deportes José María Martín Carpena, Málaga</div><div class="match-desc">Próximo partido Unicaja (Liga Endesa (Liga Regular, Jornada 15))</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">02/01/2027 · 19:30</span></div><div class="match-title">Unicaja vs Surne Bilbao</div><div class="match-loc">📍 Palacio de Deportes José María Martín Carpena, Málaga</div><div class="match-desc">Próximo partido Unicaja (Liga Endesa (Liga Regular, Jornada 16))</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">03/01/2027 · Por confirmar</span></div><div class="match-title">Málaga CF vs Elche CF</div><div class="match-loc">📍 Estadio La Rosaleda, Málaga</div><div class="match-desc">Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 18) (Hora por confirmar)</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">10/01/2027 · Por confirmar</span></div><div class="match-title">Heredia 21 FS vs UD Playas de Málaga FS</div><div class="match-loc">📍 Ciudad Deportiva de Carranque (Pabellón), Málaga</div><div class="match-desc">Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J10) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">10/01/2027 · Por confirmar</span></div><div class="match-title">Valencia CF vs Málaga CF</div><div class="match-loc">📍 Mestalla</div><div class="match-desc">Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 19) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">10/01/2027 · 19:00</span></div><div class="match-title">Kosner Baskonia vs Unicaja</div><div class="match-loc">📍 Fernando Buesa Arena</div><div class="match-desc">Próximo partido Unicaja (Liga Endesa (Liga Regular, Jornada 17))</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">17/01/2027 · Por confirmar</span></div><div class="match-title">CD Cuevas Bajas Atlético vs Heredia 21 FS</div><div class="match-loc">📍 Polideportivo Municipal de Cuevas Bajas, Málaga</div><div class="match-desc">Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J11) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">17/01/2027 · Por confirmar</span></div><div class="match-title">Málaga CF vs Real Madrid</div><div class="match-loc">📍 Estadio La Rosaleda, Málaga</div><div class="match-desc">Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 20) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">17/01/2027 · 19:00</span></div><div class="match-title">Barça vs Unicaja</div><div class="match-loc">📍 Palau Blaugrana</div><div class="match-desc">Próximo partido Unicaja (Liga Endesa (Liga Regular, Jornada 18))</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">23/01/2027 · 19:30</span></div><div class="match-title">Unicaja vs Recoletas Salud San Pablo Burgos</div><div class="match-loc">📍 Palacio de Deportes José María Martín Carpena, Málaga</div><div class="match-desc">Próximo partido Unicaja (Liga Endesa (Liga Regular, Jornada 19))</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">24/01/2027 · Por confirmar</span></div><div class="match-title">Heredia 21 FS vs CD Campillos FS Femenino</div><div class="match-loc">📍 Ciudad Deportiva de Carranque (Pabellón), Málaga</div><div class="match-desc">Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J12) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">24/01/2027 · Por confirmar</span></div><div class="match-title">Real Sociedad vs Málaga CF</div><div class="match-loc">📍 Anoeta</div><div class="match-desc">Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 21) (Hora por confirmar)</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">31/01/2027 · Por confirmar</span></div><div class="match-title">CD Axarquía FS Algarrobo vs Heredia 21 FS</div><div class="match-loc">📍 Pabellón Municipal La Vega, Algarrobo (Málaga)</div><div class="match-desc">Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J13) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">31/01/2027 · Por confirmar</span></div><div class="match-title">Málaga CF vs Deportivo Alavés</div><div class="match-loc">📍 Estadio La Rosaleda, Málaga</div><div class="match-desc">Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 22) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">31/01/2027 · 12:30</span></div><div class="match-title">Unicaja vs Río Breogán</div><div class="match-loc">📍 Palacio de Deportes José María Martín Carpena, Málaga</div><div class="match-desc">Próximo partido Unicaja (Liga Endesa (Liga Regular, Jornada 20))</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">06/02/2027 · 21:00</span></div><div class="match-title">FIATC Girona vs Unicaja</div><div class="match-loc">📍 Pavelló Girona Fontajau</div><div class="match-desc">Próximo partido Unicaja (Liga Endesa (Liga Regular, Jornada 21))</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">07/02/2027 · Por confirmar</span></div><div class="match-title">Heredia 21 FS vs CD Torre de Casabermeja</div><div class="match-loc">📍 Ciudad Deportiva de Carranque (Pabellón), Málaga</div><div class="match-desc">Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J14) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">07/02/2027 · Por confirmar</span></div><div class="match-title">RC Deportivo vs Málaga CF</div><div class="match-loc">📍 Estadio ABANCA-RIAZOR</div><div class="match-desc">Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 23) (Hora por confirmar)</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">14/02/2027 · Por confirmar</span></div><div class="match-title">CV AV El Torcal vs Heredia 21 FS</div><div class="match-loc">📍 Pista Polideportiva Municipal El Torcal, Málaga</div><div class="match-desc">Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J15) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">14/02/2027 · Por confirmar</span></div><div class="match-title">Levante UD vs Málaga CF</div><div class="match-loc">📍 Ciutat de Valencia</div><div class="match-desc">Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 24) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">14/02/2027 · 18:00</span></div><div class="match-title">Unicaja vs UCAM Murcia</div><div class="match-loc">📍 Palacio de Deportes José María Martín Carpena, Málaga</div><div class="match-desc">Próximo partido Unicaja (Liga Endesa (Liga Regular, Jornada 22))</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">21/02/2027 · Por confirmar</span></div><div class="match-title">Heredia 21 FS vs CF Arriate</div><div class="match-loc">📍 Ciudad Deportiva de Carranque (Pabellón), Málaga</div><div class="match-desc">Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J16) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">21/02/2027 · Por confirmar</span></div><div class="match-title">Málaga CF vs Real Betis</div><div class="match-loc">📍 Estadio La Rosaleda, Málaga</div><div class="match-desc">Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 25) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">28/02/2027 · Por confirmar</span></div><div class="match-title">Málaga CF vs Atlético de Madrid</div><div class="match-loc">📍 Estadio La Rosaleda, Málaga</div><div class="match-desc">Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 26) (Hora por confirmar)</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">07/03/2027 · Por confirmar</span></div><div class="match-title">Heredia 21 FS vs Club Torremolinos FS</div><div class="match-loc">📍 Ciudad Deportiva de Carranque (Pabellón), Málaga</div><div class="match-desc">Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J17) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">07/03/2027 · Por confirmar</span></div><div class="match-title">Elche CF vs Málaga CF</div><div class="match-loc">📍 Martínez Valero</div><div class="match-desc">Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 27) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">07/03/2027 · 17:00</span></div><div class="match-title">Asisa Joventut vs Unicaja</div><div class="match-loc">📍 Palau Olimpic de Badalona</div><div class="match-desc">Próximo partido Unicaja (Liga Endesa (Liga Regular, Jornada 23))</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">13/03/2027 · 19:30</span></div><div class="match-title">MoraBanc Andorra vs Unicaja</div><div class="match-loc">📍 Pavelló Toni Martí</div><div class="match-desc">Próximo partido Unicaja (Liga Endesa (Liga Regular, Jornada 24))</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">14/03/2027 · Por confirmar</span></div><div class="match-title">CD Sampedreño Futsal vs Heredia 21 FS</div><div class="match-loc">📍 Pabellón Municipal Elena Benítez, San Pedro Alcántara (Marbella)</div><div class="match-desc">Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J18) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">14/03/2027 · Por confirmar</span></div><div class="match-title">Málaga CF vs Rayo Vallecano</div><div class="match-loc">📍 Estadio La Rosaleda, Málaga</div><div class="match-desc">Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 28) (Hora por confirmar)</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">20/03/2027 · 21:00</span></div><div class="match-title">Unicaja vs Kosner Baskonia</div><div class="match-loc">📍 Palacio de Deportes José María Martín Carpena, Málaga</div><div class="match-desc">Próximo partido Unicaja (Liga Endesa (Liga Regular, Jornada 25))</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">21/03/2027 · Por confirmar</span></div><div class="match-title">Villarreal CF vs Málaga CF</div><div class="match-loc">📍 Estadio de la Cerámica</div><div class="match-desc">Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 29) (Hora por confirmar)</div></div>
@@ -172,17 +268,21 @@
     <h2>Últimos Resultados</h2>
     <div class="grid">
       <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">15/11/2026 · 12:30</span></div><div class="match-title">Unicaja vs FIATC Girona (82 - 70)</div><div class="match-loc">📍 Palacio de Deportes José María Martín Carpena, Málaga</div><div class="match-desc">Resultado Unicaja: 82 - 70 | Liga Endesa (Liga Regular, Jornada 8)</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">13/11/2026 · 20:30</span></div><div class="match-title">Heredia 21 FS vs CD Axarquía FS Algarrobo (2 - 4)</div><div class="match-loc">📍 Ciudad Deportiva de Carranque (Pabellón), Málaga</div><div class="match-desc">Resultado Heredia 21 FS: 2 - 4 | 2ª Andaluza Femenina Sénior F.S. (Málaga) - J4</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">08/11/2026 · 17:00</span></div><div class="match-title">Casademont Zaragoza vs Unicaja (96 - 91)</div><div class="match-loc">📍 Pabellón Príncipe Felipe</div><div class="match-desc">Resultado Unicaja: 96 - 91 | Liga Endesa (Liga Regular, Jornada 7)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">07/11/2026 · 14:00</span></div><div class="match-title">Málaga CF vs R. Racing Club (1 - 2)</div><div class="match-loc">📍 Estadio La Rosaleda, Málaga</div><div class="match-desc">Resultado Málaga CF: 1 - 2 | LALIGA EA SPORTS - Jornada 12</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">06/11/2026 · 18:30</span></div><div class="match-title">CD Campillos FS Femenino vs Heredia 21 FS (8 - 1)</div><div class="match-loc">📍 Pabellón Municipal de Campillos, Málaga</div><div class="match-desc">Resultado Heredia 21 FS: 8 - 1 | 2ª Andaluza Femenina Sénior F.S. (Málaga) - J3</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">03/11/2026 · 20:30</span></div><div class="match-title">Unicaja vs Pallacanestro Reggiana (99 - 94)</div><div class="match-loc">📍 Palacio de Deportes José María Martín Carpena, Málaga</div><div class="match-desc">Resultado Unicaja: 99 - 94 | Basketball Champions League (Liga Regular, Jornada 3)</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">01/11/2026 · 19:00</span></div><div class="match-title">Unicaja vs Barça (89 - 92)</div><div class="match-loc">📍 Palacio de Deportes José María Martín Carpena, Málaga</div><div class="match-desc">Resultado Unicaja: 89 - 92 | Liga Endesa (Liga Regular, Jornada 6)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">31/10/2026 · 18:30</span></div><div class="match-title">Real Betis vs Málaga CF (2 - 1)</div><div class="match-loc">📍 Estadio La Cartuja de Sevilla</div><div class="match-desc">Resultado Málaga CF: 2 - 1 | LALIGA EA SPORTS - Jornada 11</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">30/10/2026 · 21:00</span></div><div class="match-title">Heredia 21 FS vs CD Cuevas Bajas Atlético (1 - 0)</div><div class="match-loc">📍 Ciudad Deportiva de Carranque (Pabellón), Málaga</div><div class="match-desc">Resultado Heredia 21 FS: 1 - 0 | 2ª Andaluza Femenina Sénior F.S. (Málaga) - J2</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">27/10/2026 · 21:00</span></div><div class="match-title">Alcázar vs Málaga CF (0 - 3)</div><div class="match-loc">📍 Estadio Manuel Delgado Meco</div><div class="match-desc">Resultado Málaga CF: 0 - 3 | Copa del Rey - Jornada 3</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">25/10/2026 · 18:00</span></div><div class="match-title">Río Breogán vs Unicaja (90 - 103)</div><div class="match-loc">📍 Pazo Provincial dos Deportes de Lugo</div><div class="match-desc">Resultado Unicaja: 90 - 103 | Liga Endesa (Liga Regular, Jornada 5)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">23/10/2026 · 21:00</span></div><div class="match-title">Deportivo Alavés vs Málaga CF (1 - 1)</div><div class="match-loc">📍 Mendizorroza</div><div class="match-desc">Resultado Málaga CF: 1 - 1 | LALIGA EA SPORTS - Jornada 10</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">20/10/2026 · 18:00</span></div><div class="match-title">BK Kvis Pardubice vs Unicaja (63 - 79)</div><div class="match-loc">📍 Enteria Arena</div><div class="match-desc">Resultado Unicaja: 63 - 79 | Basketball Champions League (Liga Regular, Jornada 2)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">18/10/2026 · 18:30</span></div><div class="match-title">Málaga CF vs Real Sociedad (2 - 5)</div><div class="match-loc">📍 Estadio La Rosaleda, Málaga</div><div class="match-desc">Resultado Málaga CF: 2 - 5 | LALIGA EA SPORTS - Jornada 9</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">17/10/2026 · 18:00</span></div><div class="match-title">Kids&Us Manresa vs Unicaja (72 - 84)</div><div class="match-loc">📍 Pavelló Nou Congost</div><div class="match-desc">Resultado Unicaja: 72 - 84 | Liga Endesa (Liga Regular, Jornada 4)</div></div>
+<div class="match-card" data-sport="futsal"><div class="match-header"><span class="badge badge-futsal">🥅 Heredia 21 FS</span><span class="match-date">16/10/2026 · 21:30</span></div><div class="match-title">UD Playas de Málaga FS vs Heredia 21 FS (1 - 2)</div><div class="match-loc">📍 Polideportivo Municipal La Princesa (Pista Ext.), Málaga</div><div class="match-desc">Resultado Heredia 21 FS: 1 - 2 | 2ª Andaluza Femenina Sénior F.S. (Málaga) - J1</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">10/10/2026 · 19:30</span></div><div class="match-title">Unicaja vs MoraBanc Andorra (92 - 84)</div><div class="match-loc">📍 Palacio de Deportes José María Martín Carpena, Málaga</div><div class="match-desc">Resultado Unicaja: 92 - 84 | Liga Endesa (Liga Regular, Jornada 3)</div></div>
 <div class="match-card" data-sport="futbol"><div class="match-header"><span class="badge badge-futbol">⚽ Málaga CF</span><span class="match-date">09/10/2026 · 21:00</span></div><div class="match-title">Málaga CF vs RCD Espanyol de Barcelona (1 - 1)</div><div class="match-loc">📍 Estadio La Rosaleda, Málaga</div><div class="match-desc">Resultado Málaga CF: 1 - 1 | LALIGA EA SPORTS - Jornada 8</div></div>
 <div class="match-card" data-sport="basket"><div class="match-header"><span class="badge badge-basket">🏀 Unicaja</span><span class="match-date">07/10/2026 · 19:00</span></div><div class="match-title">BC Juventus Utena vs Unicaja (69 - 105)</div><div class="match-loc">📍 Vilnius Arena</div><div class="match-desc">Resultado Unicaja: 69 - 105 | Basketball Champions League (Liga Regular, Jornada 1)</div></div>
@@ -194,6 +294,70 @@
     </div>
   </div>
   <script>
+    const BASE_HOST = "espimlg.github.io/sportsmlgcalendar";
+    const MAPA_CALENDARIOS = {
+      "1-1-1": { file: "completo.ics", label: "Málaga CF + Unicaja + Heredia 21 FS" },
+      "1-1-0": { file: "partidos.ics", label: "Málaga CF + Unicaja" },
+      "1-0-0": { file: "malaga.ics", label: "Solo Málaga CF" },
+      "0-1-0": { file: "unicaja.ics", label: "Solo Unicaja Baloncesto" },
+      "0-0-1": { file: "heredia21.ics", label: "Solo Heredia 21 Femenino FS" },
+      "1-0-1": { file: "malaga_heredia21.ics", label: "Málaga CF + Heredia 21 FS" },
+      "0-1-1": { file: "unicaja_heredia21.ics", label: "Unicaja + Heredia 21 FS" }
+    };
+
+    function actualizarSuscripcion() {
+      const f = document.getElementById('chk-futbol').checked;
+      const b = document.getElementById('chk-basket').checked;
+      const s = document.getElementById('chk-futsal').checked;
+
+      document.getElementById('lbl-futbol').classList.toggle('checked-futbol', f);
+      document.getElementById('lbl-basket').classList.toggle('checked-basket', b);
+      document.getElementById('lbl-futsal').classList.toggle('checked-futsal', s);
+
+      const key = `${f ? 1 : 0}-${b ? 1 : 0}-${s ? 1 : 0}`;
+      const actionsDiv = document.getElementById('subscription-actions');
+      const statusDiv = document.getElementById('feed-status');
+
+      if (!MAPA_CALENDARIOS[key]) {
+        statusDiv.innerHTML = '<span style="color:#f87171;">Selecciona al menos un equipo para generar tu enlace de suscripción.</span>';
+        actionsDiv.style.opacity = '0.4';
+        actionsDiv.style.pointerEvents = 'none';
+        return;
+      }
+
+      actionsDiv.style.opacity = '1';
+      actionsDiv.style.pointerEvents = 'auto';
+      const cfg = MAPA_CALENDARIOS[key];
+      statusDiv.innerHTML = `Suscripción seleccionada: <strong id="feed-label">${cfg.label}</strong> (<code id="feed-file">${cfg.file}</code>)`;
+
+      const webcalUrl = `webcal://${BASE_HOST}/${cfg.file}`;
+      document.getElementById('btn-gcal').href = `https://calendar.google.com/calendar/r?cid=${webcalUrl}`;
+      document.getElementById('btn-webcal').href = webcalUrl;
+      document.getElementById('btn-download').href = cfg.file;
+
+      // Filtrar tarjetas visualmente según los equipos marcados
+      const deportesActivos = new Set();
+      if (f) deportesActivos.add('futbol');
+      if (b) deportesActivos.add('basket');
+      if (s) deportesActivos.add('futsal');
+
+      document.querySelectorAll('.match-card').forEach(card => {
+        card.style.display = deportesActivos.has(card.dataset.sport) ? 'flex' : 'none';
+      });
+    }
+
+    function copiarEnlace() {
+      const fileEl = document.getElementById('feed-file');
+      const archivo = fileEl ? fileEl.textContent : 'completo.ics';
+      const url = `https://${BASE_HOST}/${archivo}`;
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = document.getElementById('btn-copy');
+        const original = btn.textContent;
+        btn.textContent = '✅ ¡Enlace copiado!';
+        setTimeout(() => { btn.textContent = original; }, 2000);
+      });
+    }
+
     function filtrar(deporte, btn) {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');

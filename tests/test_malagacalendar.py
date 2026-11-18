@@ -38,6 +38,11 @@ def test_limpiar_y_normalizar_nombres_equipos():
     assert mc.normalizar_nombre_equipo("Surne Bilbao Basket", "basket") == "Surne Bilbao"
     assert mc.normalizar_nombre_equipo("Baskonia", "basket") == "Kosner Baskonia"
 
+    # Normalización canónica Futsal (RFAF Heredia 21)
+    assert mc.normalizar_nombre_equipo("CLUB DEPORTIVO HEREDIA 21 FS", "futsal") == "Heredia 21 FS"
+    assert mc.normalizar_nombre_equipo("C.D. U.D. PLAYAS DE MÁLAGA F.S.", "futsal") == "UD Playas de Málaga FS"
+    assert mc.normalizar_nombre_equipo("CLUB DEPORTIVO CAMPILLOS FUTBOL SALA FEMENINO", "futsal") == "CD Campillos FS Femenino"
+
 
 # --- 2. TESTS DE ESTADIOS Y PABELLONES (LOCAL Y VISITANTE) ---
 def test_resolver_estadio_futbol():
@@ -65,6 +70,18 @@ def test_resolver_pabellon_basket():
     assert "Palau Blaugrana" in mc.resolver_pabellon_basket("Barça", "Pabellón por confirmar")
     assert "Príncipe Felipe" in mc.resolver_pabellon_basket("Casademont Zaragoza", None)
     assert "Enteria Arena" in mc.resolver_pabellon_basket("BK Kvis Pardubice", None)
+
+
+def test_resolver_pabellon_futsal():
+    # Local de Heredia 21 siempre Ciudad Deportiva de Carranque
+    assert mc.resolver_pabellon_futsal("Heredia 21 FS") == mc.PABELLON_HEREDIA21_LOCAL
+    assert mc.resolver_pabellon_futsal("CLUB DEPORTIVO HEREDIA 21 FS", "Pabellón por confirmar") == mc.PABELLON_HEREDIA21_LOCAL
+
+    # Visitantes de la liga malagueña
+    assert "La Princesa" in mc.resolver_pabellon_futsal("C.D. U.D. PLAYAS DE MÁLAGA F.S.")
+    assert "Casabermeja" in mc.resolver_pabellon_futsal("C.D. TORRE DE CASABERMEJA")
+    assert "San Miguel" in mc.resolver_pabellon_futsal("CLUB TORREMOLINOS F.S.")
+    assert "Elena Benítez" in mc.resolver_pabellon_futsal("C.D. SAMPEDREÑO FUTSAL")
 
 
 # --- 3. TESTS DE EXTRACCIÓN HTML UNICAJA (VISITANTE SIN TEXTO Y 'POR CONFIRMAR') ---
@@ -157,6 +174,73 @@ def test_parsear_calendario_unicaja_visitante_sin_texto_y_por_confirmar():
     assert "Príncipe Felipe" in resultados[0]["estadio"]
 
 
+# --- 3B. TESTS DE EXTRACCIÓN HTML RFAF (HEREDIA 21 FEMENINO FS) ---
+def test_parsear_partidos_heredia21_html():
+    ano_temp = mc.ANO_INICIO_TEMPORADA
+    html_rfaf = f"""
+    <table class="table">
+      <tr>
+        <td><h5>1</h5></td>
+        <td>
+          <h5>C.D. U.D. PLAYAS DE MÁLAGA F.S.</h5>
+          <h5>CLUB DEPORTIVO HEREDIA 21 FS</h5>
+          <h5>16-10-{ano_temp} &nbsp;21:30</h5>
+        </td>
+        <td><b>1</b> - <b> 2</b>&nbsp;<span class="badge">G</span></td>
+      </tr>
+      <tr>
+        <td><h5>5</h5></td>
+        <td>
+          <h5>C.D. TORRE DE CASABERMEJA</h5>
+          <h5>CLUB DEPORTIVO HEREDIA 21 FS</h5>
+          <h5>20-11-{ano_temp} &nbsp;21:30</h5>
+        </td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td><h5>6</h5></td>
+        <td>
+          <h5>CLUB DEPORTIVO HEREDIA 21 FS</h5>
+          <h5>C.V. AV EL TORCAL</h5>
+          <h5>29-11-{ano_temp}</h5>
+        </td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td><h5>Final</h5></td>
+        <td>
+          <h5>C.D. SAMPEDREÑO FUTSAL</h5>
+          <h5>CLUB DEPORTIVO HEREDIA 21 FS</h5>
+          <h5>24-05-{ano_temp - 1} &nbsp;13:00</h5>
+        </td>
+        <td><b>2</b> - <b> 1</b></td>
+      </tr>
+    </table>
+    """
+    proximos, resultados = mc.parsear_partidos_heredia21_html(html_rfaf, "2ª Andaluza Femenina Sénior F.S.")
+
+    # El partido de la temporada pasada (24-05-{ano_temp - 1}) debe filtrarse
+    assert len(resultados) == 1
+    assert len(proximos) == 2
+
+    # Resultado Jornada 1
+    assert resultados[0]["name"] == "UD Playas de Málaga FS vs Heredia 21 FS"
+    assert resultados[0]["resultado"] == "1 - 2"
+    assert "La Princesa" in resultados[0]["estadio"]
+    assert resultados[0]["deporte"] == "futsal"
+
+    # Próximo con hora confirmada (J5)
+    assert proximos[0]["name"] == "CD Torre de Casabermeja vs Heredia 21 FS"
+    assert proximos[0]["hora_confirmada"] is True
+    assert "Casabermeja" in proximos[0]["estadio"]
+
+    # Próximo en casa sin hora confirmada (J6)
+    assert proximos[1]["name"] == "Heredia 21 FS vs CV AV El Torcal"
+    assert proximos[1]["hora_confirmada"] is False
+    assert "Hora por confirmar" in proximos[1]["descripcion"]
+    assert "Carranque" in proximos[1]["estadio"]
+
+
 # --- 4. TESTS DE FLASHSCORE (FILTRO AMISTOSOS Y LIMPIEZA SVG) ---
 def test_parsear_resultados_flashscore_html():
     html_fs = """
@@ -191,7 +275,7 @@ def test_parsear_resultados_flashscore_html():
     assert "Manuel Delgado Meco" in eventos[0]["estadio"]
 
 
-# --- 5. TESTS DE RECONCILIACIÓN ICS (ADIÓS DUPLICADOS Y PROTECCIÓN ANTI-BORRADO) ---
+# --- 5. TESTS DE RECONCILIACIÓN ICS Y CALENDARIOS MODULARES ---
 def test_reconciliacion_ics_cambio_fecha_y_resultado():
     with tempfile.TemporaryDirectory() as tmpdir:
         ruta_ics = os.path.join(tmpdir, "test_partidos.ics")
@@ -269,14 +353,68 @@ def test_reconciliacion_ics_cambio_fecha_y_resultado():
         assert "Martín Carpena" in locations["20261206-UnicajavsValenciaBasket@sportsmlg.com"]
 
 
-# --- 6. TEST DE INTEGRACIÓN SOBRE EL ARCHIVO REAL GENERADO ---
+def test_generar_todos_los_calendarios_ics_modulares():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        eventos_mix = [
+            {
+                "fecha_hora_inicio": "2026-11-22T17:30:00+00:00",
+                "fecha_hora_fin": "2026-11-22T19:30:00+00:00",
+                "estadio": mc.ESTADIO_MALAGA_LOCAL,
+                "name": "Málaga CF vs Real Sociedad",
+                "descripcion": "Próximo partido Málaga CF",
+                "deporte": "futbol",
+                "hora_confirmada": True,
+            },
+            {
+                "fecha_hora_inicio": "2026-11-18T19:30:00+00:00",
+                "fecha_hora_fin": "2026-11-18T21:30:00+00:00",
+                "estadio": mc.PABELLON_UNICAJA_LOCAL,
+                "name": "Unicaja vs BK Kvis Pardubice",
+                "descripcion": "Próximo partido Unicaja",
+                "deporte": "basket",
+                "hora_confirmada": True,
+            },
+            {
+                "fecha_hora_inicio": "2026-11-20T20:30:00+00:00",
+                "fecha_hora_fin": "2026-11-20T22:30:00+00:00",
+                "estadio": "Pabellón Municipal de Casabermeja, Málaga",
+                "name": "CD Torre de Casabermeja vs Heredia 21 FS",
+                "descripcion": "Próximo partido Heredia 21 FS",
+                "deporte": "futsal",
+                "hora_confirmada": True,
+            },
+        ]
+        rutas = mc.generar_todos_los_calendarios_ics(eventos_mix, directorio=tmpdir)
+        assert len(rutas) == 7
+
+        conteos_esperados = {
+            "completo.ics": 3,
+            "partidos.ics": 2,
+            "malaga.ics": 1,
+            "unicaja.ics": 1,
+            "heredia21.ics": 1,
+            "malaga_heredia21.ics": 2,
+            "unicaja_heredia21.ics": 2,
+        }
+        for archivo, num_esp in conteos_esperados.items():
+            ruta = rutas[archivo]
+            assert os.path.exists(ruta)
+            with open(ruta, "rb") as f:
+                cal = Calendar.from_ical(f.read())
+            vevents = [c for c in cal.walk() if c.name == "VEVENT"]
+            assert len(vevents) == num_esp, f"Fallo en {archivo}: esperados {num_esp}, encontrados {len(vevents)}"
+
+
+# --- 6. TEST DE INTEGRACIÓN SOBRE LOS ARCHIVOS REALES GENERADOS ---
 def test_integracion_partidos_ics_real():
-    assert os.path.exists("partidos.ics"), "Debe existir partidos.ics tras la ejecución"
-    with open("partidos.ics", "rb") as f:
+    for archivo in mc.CALENDARIOS_MODULARES:
+        assert os.path.exists(archivo), f"Debe existir '{archivo}' tras la ejecución"
+
+    with open("completo.ics", "rb") as f:
         cal = Calendar.from_ical(f.read())
 
     vevents = [c for c in cal.walk() if c.name == "VEVENT"]
-    assert len(vevents) >= 60, f"Se esperaban al menos 60 partidos en la temporada, encontrados: {len(vevents)}"
+    assert len(vevents) >= 75, f"Se esperaban al menos 75 partidos en completo.ics, encontrados: {len(vevents)}"
 
     ubicaciones_prohibidas = {
         "pabellón por confirmar",
@@ -290,6 +428,7 @@ def test_integracion_partidos_ics_real():
 
     partidos_unicaja = 0
     partidos_malaga = 0
+    partidos_heredia21 = 0
     ventana_enfrentamientos = {}
 
     for ev in vevents:
@@ -316,6 +455,10 @@ def test_integracion_partidos_ics_real():
             partidos_malaga += 1
             if summary.startswith("Málaga CF vs "):
                 assert "Rosaleda" in location, f"Málaga CF local sin La Rosaleda: {summary} -> {location}"
+        if "Heredia 21 FS" in summary:
+            partidos_heredia21 += 1
+            if summary.startswith("Heredia 21 FS vs "):
+                assert "Carranque" in location, f"Heredia 21 local sin Carranque: {summary} -> {location}"
 
         # 3. Verificar que no existen partidos duplicados en una ventana de ±12 días
         titulo_base = summary.split(" (")[0].strip()
@@ -330,4 +473,6 @@ def test_integracion_partidos_ics_real():
 
     assert partidos_unicaja >= 30, f"Se esperaban >=30 partidos de Unicaja, hay {partidos_unicaja}"
     assert partidos_malaga >= 30, f"Se esperaban >=30 partidos del Málaga CF, hay {partidos_malaga}"
+    assert partidos_heredia21 >= 15, f"Se esperaban >=15 partidos de Heredia 21 FS, hay {partidos_heredia21}"
+
 

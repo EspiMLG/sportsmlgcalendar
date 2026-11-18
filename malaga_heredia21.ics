@@ -1,0 +1,543 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//SportsMLGCalendar//espi.mlg//ES
+CALSCALE:GREGORIAN
+X-WR-CALNAME:Calendario Málaga CF y Heredia 21 FS
+X-WR-TIMEZONE:Europe/Madrid
+BEGIN:VEVENT
+SUMMARY:Atlético de Madrid vs Málaga CF (2 - 0)
+DTSTART:20260819T190000Z
+DTEND:20260819T210000Z
+DTSTAMP:20261118T102604Z
+UID:20260819-AtléticodeMadridvsMálagaCF@sportsmlg.com
+DESCRIPTION:Resultado Málaga CF: 2 - 0 | LALIGA EA SPORTS - Jornada 1
+LOCATION:Riyadh Air Metropolitano
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs RC Deportivo (1 - 1)
+DTSTART:20260824T193000Z
+DTEND:20260824T213000Z
+DTSTAMP:20261118T102604Z
+UID:20260824-MálagaCFvsRCDeportivo@sportsmlg.com
+DESCRIPTION:Resultado Málaga CF: 1 - 1 | LALIGA EA SPORTS - Jornada 2
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Real Madrid vs Málaga CF (4 - 0)
+DTSTART:20260830T150000Z
+DTEND:20260830T170000Z
+DTSTAMP:20261118T102604Z
+UID:20260830-RealMadridvsMálagaCF@sportsmlg.com
+DESCRIPTION:Resultado Málaga CF: 4 - 0 | LALIGA EA SPORTS - Jornada 3
+LOCATION:Estadio Bernabéu
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs Levante UD (0 - 0)
+DTSTART:20260906T163000Z
+DTEND:20260906T183000Z
+DTSTAMP:20261118T102604Z
+UID:20260906-MálagaCFvsLevanteUD@sportsmlg.com
+DESCRIPTION:Resultado Málaga CF: 0 - 0 | LALIGA EA SPORTS - Jornada 4
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Celta vs Málaga CF (1 - 1)
+DTSTART:20260913T120000Z
+DTEND:20260913T140000Z
+DTSTAMP:20261118T102604Z
+UID:20260913-CeltavsMálagaCF@sportsmlg.com
+DESCRIPTION:Resultado Málaga CF: 1 - 1 | LALIGA EA SPORTS - Jornada 5
+LOCATION:Estadio Abanca-Balaídos
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs Villarreal CF (1 - 3)
+DTSTART:20260917T193000Z
+DTEND:20260917T213000Z
+DTSTAMP:20261118T102604Z
+UID:20260917-MálagaCFvsVillarrealCF@sportsmlg.com
+DESCRIPTION:Resultado Málaga CF: 1 - 3 | LALIGA EA SPORTS - Jornada 6
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Getafe CF vs Málaga CF (1 - 0)
+DTSTART:20260920T120000Z
+DTEND:20260920T140000Z
+DTSTAMP:20261118T102604Z
+UID:20260920-GetafeCFvsMálagaCF@sportsmlg.com
+DESCRIPTION:Resultado Málaga CF: 1 - 0 | LALIGA EA SPORTS - Jornada 7
+LOCATION:Coliseum
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs RCD Espanyol de Barcelona (1 - 1)
+DTSTART:20261009T190000Z
+DTEND:20261009T210000Z
+DTSTAMP:20261118T102604Z
+UID:20261009-MálagaCFvsRCDEspanyoldeBarcelona@sportsmlg.com
+DESCRIPTION:Resultado Málaga CF: 1 - 1 | LALIGA EA SPORTS - Jornada 8
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:UD Playas de Málaga FS vs Heredia 21 FS (1 - 2)
+DTSTART:20261016T193000Z
+DTEND:20261016T213000Z
+DTSTAMP:20261118T131914Z
+UID:20261016-UDPlayasdeMálagaFSvsHeredia21FS@sportsmlg.com
+DESCRIPTION:Resultado Heredia 21 FS: 1 - 2 | 2ª Andaluza Femenina Sénior F.S. (Málaga) - J1
+LOCATION:Polideportivo Municipal La Princesa (Pista Ext.), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs Real Sociedad (2 - 5)
+DTSTART:20261018T163000Z
+DTEND:20261018T183000Z
+DTSTAMP:20261118T102604Z
+UID:20261018-MálagaCFvsRealSociedad@sportsmlg.com
+DESCRIPTION:Resultado Málaga CF: 2 - 5 | LALIGA EA SPORTS - Jornada 9
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Deportivo Alavés vs Málaga CF (1 - 1)
+DTSTART:20261023T190000Z
+DTEND:20261023T210000Z
+DTSTAMP:20261118T102604Z
+UID:20261023-DeportivoAlavésvsMálagaCF@sportsmlg.com
+DESCRIPTION:Resultado Málaga CF: 1 - 1 | LALIGA EA SPORTS - Jornada 10
+LOCATION:Mendizorroza
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Alcázar vs Málaga CF (0 - 3)
+DTSTART:20261027T200000Z
+DTEND:20261027T220000Z
+DTSTAMP:20261118T102604Z
+UID:20261027-AlcázarvsMálagaCF@sportsmlg.com
+DESCRIPTION:Resultado Málaga CF: 0 - 3 | Copa del Rey - Jornada 3
+LOCATION:Estadio Manuel Delgado Meco
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs CD Cuevas Bajas Atlético (1 - 0)
+DTSTART:20261030T200000Z
+DTEND:20261030T220000Z
+DTSTAMP:20261118T131914Z
+UID:20261030-Heredia21FSvsCDCuevasBajasAtlético@sportsmlg.com
+DESCRIPTION:Resultado Heredia 21 FS: 1 - 0 | 2ª Andaluza Femenina Sénior F.S. (Málaga) - J2
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Real Betis vs Málaga CF (2 - 1)
+DTSTART:20261031T173000Z
+DTEND:20261031T193000Z
+DTSTAMP:20261118T102604Z
+UID:20261031-RealBetisvsMálagaCF@sportsmlg.com
+DESCRIPTION:Resultado Málaga CF: 2 - 1 | LALIGA EA SPORTS - Jornada 11
+LOCATION:Estadio La Cartuja de Sevilla
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:CD Campillos FS Femenino vs Heredia 21 FS (8 - 1)
+DTSTART:20261106T173000Z
+DTEND:20261106T193000Z
+DTSTAMP:20261118T131914Z
+UID:20261106-CDCampillosFSFemeninovsHeredia21FS@sportsmlg.com
+DESCRIPTION:Resultado Heredia 21 FS: 8 - 1 | 2ª Andaluza Femenina Sénior F.S. (Málaga) - J3
+LOCATION:Pabellón Municipal de Campillos, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs R. Racing Club (1 - 2)
+DTSTART:20261107T130000Z
+DTEND:20261107T150000Z
+DTSTAMP:20261118T102604Z
+UID:20261107-MálagaCFvsR.RacingClub@sportsmlg.com
+DESCRIPTION:Resultado Málaga CF: 1 - 2 | LALIGA EA SPORTS - Jornada 12
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs CD Axarquía FS Algarrobo (2 - 4)
+DTSTART:20261113T193000Z
+DTEND:20261113T213000Z
+DTSTAMP:20261118T131914Z
+UID:20261113-Heredia21FSvsCDAxarquíaFSAlgarrobo@sportsmlg.com
+DESCRIPTION:Resultado Heredia 21 FS: 2 - 4 | 2ª Andaluza Femenina Sénior F.S. (Málaga) - J4
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:CD Torre de Casabermeja vs Heredia 21 FS
+DTSTART:20261120T203000Z
+DTEND:20261120T223000Z
+DTSTAMP:20261118T131914Z
+UID:20261120-CDTorredeCasabermejavsHeredia21FS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J5)
+LOCATION:Pabellón Municipal de Casabermeja, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:CA Osasuna vs Málaga CF
+DTSTART:20261122T173000Z
+DTEND:20261122T193000Z
+DTSTAMP:20261118T102604Z
+UID:20261122-CAOsasunavsMálagaCF@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 13)
+LOCATION:El Sadar
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs Athletic Club
+DTSTART:20261128T151500Z
+DTEND:20261128T171500Z
+DTSTAMP:20261118T102604Z
+UID:20261128-MálagaCFvsAthleticClub@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 14)
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs CV AV El Torcal
+DTSTART:20261129T020000Z
+DTEND:20261129T040000Z
+DTSTAMP:20261118T131914Z
+UID:20261129-Heredia21FSvsCVAVElTorcal@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J6) (Hora por confirmar)
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:CF Arriate vs Heredia 21 FS
+DTSTART:20261206T020000Z
+DTEND:20261206T040000Z
+DTSTAMP:20261118T131914Z
+UID:20261206-CFArriatevsHeredia21FS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J7) (Hora por confirmar)
+LOCATION:Pabellón Municipal de Arriate, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Sevilla FC vs Málaga CF
+DTSTART:20261207T200000Z
+DTEND:20261207T220000Z
+DTSTAMP:20261118T102604Z
+UID:20261207-SevillaFCvsMálagaCF@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 15)
+LOCATION:Ramón Sánchez-Pizjuán
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Club Torremolinos FS vs Heredia 21 FS
+DTSTART:20261213T020000Z
+DTEND:20261213T040000Z
+DTSTAMP:20261118T131914Z
+UID:20261213-ClubTorremolinosFSvsHeredia21FS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J8) (Hora por confirmar)
+LOCATION:Pabellón Municipal San Miguel, Torremolinos (Málaga)
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs FC Barcelona
+DTSTART:20261213T020000Z
+DTEND:20261213T040000Z
+DTSTAMP:20261118T102604Z
+UID:20261213-MálagaCFvsFCBarcelona@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 16) (H
+ ora por confirmar)
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs CD Sampedreño Futsal
+DTSTART:20261220T020000Z
+DTEND:20261220T040000Z
+DTSTAMP:20261118T131914Z
+UID:20261220-Heredia21FSvsCDSampedreñoFutsal@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J9) (Hora por confirmar)
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Rayo Vallecano vs Málaga CF
+DTSTART:20261220T020000Z
+DTEND:20261220T040000Z
+DTSTAMP:20261118T102604Z
+UID:20261220-RayoVallecanovsMálagaCF@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 17) (H
+ ora por confirmar)
+LOCATION:Estadio de Vallecas
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs Elche CF
+DTSTART:20270103T020000Z
+DTEND:20270103T040000Z
+DTSTAMP:20261118T102604Z
+UID:20270103-MálagaCFvsElcheCF@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 18) (H
+ ora por confirmar)
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs UD Playas de Málaga FS
+DTSTART:20270110T020000Z
+DTEND:20270110T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270110-Heredia21FSvsUDPlayasdeMálagaFS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J10) (Hora por confirmar)
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Valencia CF vs Málaga CF
+DTSTART:20270110T020000Z
+DTEND:20270110T040000Z
+DTSTAMP:20261118T102604Z
+UID:20270110-ValenciaCFvsMálagaCF@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 19) (H
+ ora por confirmar)
+LOCATION:Mestalla
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:CD Cuevas Bajas Atlético vs Heredia 21 FS
+DTSTART:20270117T020000Z
+DTEND:20270117T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270117-CDCuevasBajasAtléticovsHeredia21FS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J11) (Hora por confirmar)
+LOCATION:Polideportivo Municipal de Cuevas Bajas, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs Real Madrid
+DTSTART:20270117T020000Z
+DTEND:20270117T040000Z
+DTSTAMP:20261118T102604Z
+UID:20270117-MálagaCFvsRealMadrid@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 20) (H
+ ora por confirmar)
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs CD Campillos FS Femenino
+DTSTART:20270124T020000Z
+DTEND:20270124T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270124-Heredia21FSvsCDCampillosFSFemenino@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J12) (Hora por confirmar)
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Real Sociedad vs Málaga CF
+DTSTART:20270124T020000Z
+DTEND:20270124T040000Z
+DTSTAMP:20261118T102604Z
+UID:20270124-RealSociedadvsMálagaCF@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 21) (H
+ ora por confirmar)
+LOCATION:Anoeta
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:CD Axarquía FS Algarrobo vs Heredia 21 FS
+DTSTART:20270131T020000Z
+DTEND:20270131T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270131-CDAxarquíaFSAlgarrobovsHeredia21FS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J13) (Hora por confirmar)
+LOCATION:Pabellón Municipal La Vega, Algarrobo (Málaga)
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs Deportivo Alavés
+DTSTART:20270131T020000Z
+DTEND:20270131T040000Z
+DTSTAMP:20261118T102604Z
+UID:20270131-MálagaCFvsDeportivoAlavés@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 22) (H
+ ora por confirmar)
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs CD Torre de Casabermeja
+DTSTART:20270207T020000Z
+DTEND:20270207T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270207-Heredia21FSvsCDTorredeCasabermeja@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J14) (Hora por confirmar)
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:RC Deportivo vs Málaga CF
+DTSTART:20270207T020000Z
+DTEND:20270207T040000Z
+DTSTAMP:20261118T102604Z
+UID:20270207-RCDeportivovsMálagaCF@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 23) (H
+ ora por confirmar)
+LOCATION:Estadio ABANCA-RIAZOR
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:CV AV El Torcal vs Heredia 21 FS
+DTSTART:20270214T020000Z
+DTEND:20270214T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270214-CVAVElTorcalvsHeredia21FS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J15) (Hora por confirmar)
+LOCATION:Pista Polideportiva Municipal El Torcal, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Levante UD vs Málaga CF
+DTSTART:20270214T020000Z
+DTEND:20270214T040000Z
+DTSTAMP:20261118T102604Z
+UID:20270214-LevanteUDvsMálagaCF@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 24) (H
+ ora por confirmar)
+LOCATION:Ciutat de Valencia
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs CF Arriate
+DTSTART:20270221T020000Z
+DTEND:20270221T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270221-Heredia21FSvsCFArriate@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J16) (Hora por confirmar)
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs Real Betis
+DTSTART:20270221T020000Z
+DTEND:20270221T040000Z
+DTSTAMP:20261118T102604Z
+UID:20270221-MálagaCFvsRealBetis@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 25) (H
+ ora por confirmar)
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs Atlético de Madrid
+DTSTART:20270228T020000Z
+DTEND:20270228T040000Z
+DTSTAMP:20261118T102604Z
+UID:20270228-MálagaCFvsAtléticodeMadrid@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 26) (H
+ ora por confirmar)
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs Club Torremolinos FS
+DTSTART:20270307T020000Z
+DTEND:20270307T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270307-Heredia21FSvsClubTorremolinosFS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J17) (Hora por confirmar)
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Elche CF vs Málaga CF
+DTSTART:20270307T020000Z
+DTEND:20270307T040000Z
+DTSTAMP:20261118T102604Z
+UID:20270307-ElcheCFvsMálagaCF@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 27) (H
+ ora por confirmar)
+LOCATION:Martínez Valero
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:CD Sampedreño Futsal vs Heredia 21 FS
+DTSTART:20270314T020000Z
+DTEND:20270314T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270314-CDSampedreñoFutsalvsHeredia21FS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J18) (Hora por confirmar)
+LOCATION:Pabellón Municipal Elena Benítez, San Pedro Alcántara (Marbella)
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs Rayo Vallecano
+DTSTART:20270314T020000Z
+DTEND:20270314T040000Z
+DTSTAMP:20261118T102604Z
+UID:20270314-MálagaCFvsRayoVallecano@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 28) (H
+ ora por confirmar)
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Villarreal CF vs Málaga CF
+DTSTART:20270321T020000Z
+DTEND:20270321T040000Z
+DTSTAMP:20261118T102604Z
+UID:20270321-VillarrealCFvsMálagaCF@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 29) (H
+ ora por confirmar)
+LOCATION:Estadio de la Cerámica
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs CA Osasuna
+DTSTART:20270404T010000Z
+DTEND:20270404T030000Z
+DTSTAMP:20261118T102604Z
+UID:20270404-MálagaCFvsCAOsasuna@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 30) (H
+ ora por confirmar)
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:RCD Espanyol de Barcelona vs Málaga CF
+DTSTART:20270411T010000Z
+DTEND:20270411T030000Z
+DTSTAMP:20261118T102604Z
+UID:20270411-RCDEspanyoldeBarcelonavsMálagaCF@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 31) (H
+ ora por confirmar)
+LOCATION:RCDE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs Valencia CF
+DTSTART:20270418T010000Z
+DTEND:20270418T030000Z
+DTSTAMP:20261118T102604Z
+UID:20270418-MálagaCFvsValenciaCF@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 32) (H
+ ora por confirmar)
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:R. Racing Club vs Málaga CF
+DTSTART:20270421T010000Z
+DTEND:20270421T030000Z
+DTSTAMP:20261118T102604Z
+UID:20270421-R.RacingClubvsMálagaCF@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 33) (H
+ ora por confirmar)
+LOCATION:El Sardinero
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs Getafe CF
+DTSTART:20270502T010000Z
+DTEND:20270502T030000Z
+DTSTAMP:20261118T102604Z
+UID:20270502-MálagaCFvsGetafeCF@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 34) (H
+ ora por confirmar)
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Athletic Club vs Málaga CF
+DTSTART:20270509T010000Z
+DTEND:20270509T030000Z
+DTSTAMP:20261118T102604Z
+UID:20270509-AthleticClubvsMálagaCF@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 35) (H
+ ora por confirmar)
+LOCATION:San Mamés
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs Celta
+DTSTART:20270516T010000Z
+DTEND:20270516T030000Z
+DTSTAMP:20261118T102604Z
+UID:20270516-MálagaCFvsCelta@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 36) (H
+ ora por confirmar)
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:FC Barcelona vs Málaga CF
+DTSTART:20270523T010000Z
+DTEND:20270523T030000Z
+DTSTAMP:20261118T102604Z
+UID:20270523-FCBarcelonavsMálagaCF@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 37) (H
+ ora por confirmar)
+LOCATION:Camp Nou
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Málaga CF vs Sevilla FC
+DTSTART:20270530T010000Z
+DTEND:20270530T030000Z
+DTSTAMP:20261118T102604Z
+UID:20270530-MálagaCFvsSevillaFC@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 38) (H
+ ora por confirmar)
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+END:VCALENDAR

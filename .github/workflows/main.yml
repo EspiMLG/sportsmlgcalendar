@@ -49,11 +49,10 @@ jobs:
       run: |
         git config --global user.name "GitHub Action Bot"
         git config --global user.email "github-actions-bot@users.noreply.github.com"
-        # Solo hacer commit si partidos.ics ha tenido algún cambio real (nuevo resultado, horario o recinto)
-        if git diff --quiet partidos.ics; then
-          echo "No hay cambios en partidos.ics, no se requiere commit."
+        git add *.ics index.html
+        if git diff --cached --quiet; then
+          echo "No hay cambios en los calendarios .ics ni en index.html, no se requiere commit."
         else
-          git add partidos.ics index.html
           git commit -m "Actualización automática de calendario 🤖"
           git push
         fi

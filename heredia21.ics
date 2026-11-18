@@ -1,0 +1,169 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//SportsMLGCalendar//espi.mlg//ES
+CALSCALE:GREGORIAN
+X-WR-CALNAME:Calendario Heredia 21 Femenino FS
+X-WR-TIMEZONE:Europe/Madrid
+BEGIN:VEVENT
+SUMMARY:UD Playas de Málaga FS vs Heredia 21 FS (1 - 2)
+DTSTART:20261016T193000Z
+DTEND:20261016T213000Z
+DTSTAMP:20261118T131914Z
+UID:20261016-UDPlayasdeMálagaFSvsHeredia21FS@sportsmlg.com
+DESCRIPTION:Resultado Heredia 21 FS: 1 - 2 | 2ª Andaluza Femenina Sénior F.S. (Málaga) - J1
+LOCATION:Polideportivo Municipal La Princesa (Pista Ext.), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs CD Cuevas Bajas Atlético (1 - 0)
+DTSTART:20261030T200000Z
+DTEND:20261030T220000Z
+DTSTAMP:20261118T131914Z
+UID:20261030-Heredia21FSvsCDCuevasBajasAtlético@sportsmlg.com
+DESCRIPTION:Resultado Heredia 21 FS: 1 - 0 | 2ª Andaluza Femenina Sénior F.S. (Málaga) - J2
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:CD Campillos FS Femenino vs Heredia 21 FS (8 - 1)
+DTSTART:20261106T173000Z
+DTEND:20261106T193000Z
+DTSTAMP:20261118T131914Z
+UID:20261106-CDCampillosFSFemeninovsHeredia21FS@sportsmlg.com
+DESCRIPTION:Resultado Heredia 21 FS: 8 - 1 | 2ª Andaluza Femenina Sénior F.S. (Málaga) - J3
+LOCATION:Pabellón Municipal de Campillos, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs CD Axarquía FS Algarrobo (2 - 4)
+DTSTART:20261113T193000Z
+DTEND:20261113T213000Z
+DTSTAMP:20261118T131914Z
+UID:20261113-Heredia21FSvsCDAxarquíaFSAlgarrobo@sportsmlg.com
+DESCRIPTION:Resultado Heredia 21 FS: 2 - 4 | 2ª Andaluza Femenina Sénior F.S. (Málaga) - J4
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:CD Torre de Casabermeja vs Heredia 21 FS
+DTSTART:20261120T203000Z
+DTEND:20261120T223000Z
+DTSTAMP:20261118T131914Z
+UID:20261120-CDTorredeCasabermejavsHeredia21FS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J5)
+LOCATION:Pabellón Municipal de Casabermeja, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs CV AV El Torcal
+DTSTART:20261129T020000Z
+DTEND:20261129T040000Z
+DTSTAMP:20261118T131914Z
+UID:20261129-Heredia21FSvsCVAVElTorcal@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J6) (Hora por confirmar)
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:CF Arriate vs Heredia 21 FS
+DTSTART:20261206T020000Z
+DTEND:20261206T040000Z
+DTSTAMP:20261118T131914Z
+UID:20261206-CFArriatevsHeredia21FS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J7) (Hora por confirmar)
+LOCATION:Pabellón Municipal de Arriate, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Club Torremolinos FS vs Heredia 21 FS
+DTSTART:20261213T020000Z
+DTEND:20261213T040000Z
+DTSTAMP:20261118T131914Z
+UID:20261213-ClubTorremolinosFSvsHeredia21FS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J8) (Hora por confirmar)
+LOCATION:Pabellón Municipal San Miguel, Torremolinos (Málaga)
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs CD Sampedreño Futsal
+DTSTART:20261220T020000Z
+DTEND:20261220T040000Z
+DTSTAMP:20261118T131914Z
+UID:20261220-Heredia21FSvsCDSampedreñoFutsal@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J9) (Hora por confirmar)
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs UD Playas de Málaga FS
+DTSTART:20270110T020000Z
+DTEND:20270110T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270110-Heredia21FSvsUDPlayasdeMálagaFS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J10) (Hora por confirmar)
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:CD Cuevas Bajas Atlético vs Heredia 21 FS
+DTSTART:20270117T020000Z
+DTEND:20270117T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270117-CDCuevasBajasAtléticovsHeredia21FS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J11) (Hora por confirmar)
+LOCATION:Polideportivo Municipal de Cuevas Bajas, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs CD Campillos FS Femenino
+DTSTART:20270124T020000Z
+DTEND:20270124T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270124-Heredia21FSvsCDCampillosFSFemenino@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J12) (Hora por confirmar)
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:CD Axarquía FS Algarrobo vs Heredia 21 FS
+DTSTART:20270131T020000Z
+DTEND:20270131T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270131-CDAxarquíaFSAlgarrobovsHeredia21FS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J13) (Hora por confirmar)
+LOCATION:Pabellón Municipal La Vega, Algarrobo (Málaga)
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs CD Torre de Casabermeja
+DTSTART:20270207T020000Z
+DTEND:20270207T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270207-Heredia21FSvsCDTorredeCasabermeja@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J14) (Hora por confirmar)
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:CV AV El Torcal vs Heredia 21 FS
+DTSTART:20270214T020000Z
+DTEND:20270214T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270214-CVAVElTorcalvsHeredia21FS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J15) (Hora por confirmar)
+LOCATION:Pista Polideportiva Municipal El Torcal, Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs CF Arriate
+DTSTART:20270221T020000Z
+DTEND:20270221T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270221-Heredia21FSvsCFArriate@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J16) (Hora por confirmar)
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Heredia 21 FS vs Club Torremolinos FS
+DTSTART:20270307T020000Z
+DTEND:20270307T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270307-Heredia21FSvsClubTorremolinosFS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J17) (Hora por confirmar)
+LOCATION:Ciudad Deportiva de Carranque (Pabellón), Málaga
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:CD Sampedreño Futsal vs Heredia 21 FS
+DTSTART:20270314T020000Z
+DTEND:20270314T040000Z
+DTSTAMP:20261118T131914Z
+UID:20270314-CDSampedreñoFutsalvsHeredia21FS@sportsmlg.com
+DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior F.S. (Málaga) - J18) (Hora por confirmar)
+LOCATION:Pabellón Municipal Elena Benítez, San Pedro Alcántara (Marbella)
+END:VEVENT
+END:VCALENDAR
