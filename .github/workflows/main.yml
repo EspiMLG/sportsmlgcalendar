@@ -2,14 +2,18 @@ name: Update Google Calendar
 
 on:
   schedule:
-    - cron: '0 23 * * 0'  # Sábados a las 12:00 UTC
-    - cron: '0 16 * * 3'  # Miércoles a las 16:00 UTC (17:00 en Madrid CET)
+    # Actualización automática diaria tras cada franja de partidos y anuncios de horarios (UTC)
+    - cron: '30 12 * * *'  # Mediodía (anuncios de horarios LaLiga/ACB)
+    - cron: '15 15 * * *'  # Fin de partidos matinales (12:00 / 12:30 / 14:00)
+    - cron: '30 19 * * *'  # Fin de partidos de tarde (16:15 / 17:00 / 18:30)
+    - cron: '15 21 * * *'  # Fin de partidos europeos/tarde-noche (19:30 / 20:00)
+    - cron: '15 23 * * *'  # Fin de partidos nocturnos (20:30 / 21:00 / 21:30)
   workflow_dispatch:  # Permitir la ejecución manual
 
 jobs:
   update-calendar:
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: write # Permiso para hacer push
 
@@ -25,33 +29,31 @@ jobs:
 
     - name: Install dependencies
       run: |
-        # Actualizar e instalar dependencias del SO y Google Chrome
         sudo apt-get update
         sudo apt-get install -y wget xvfb libxi6 tzdata
         wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
         sudo dpkg -i google-chrome-stable_current_amd64.deb
         sudo apt-get -fy install
         rm google-chrome-stable_current_amd64.deb
-        
-        # Instalar dependencias de Python
         pip install -r requirements.txt
 
-    - name: Run update script
+    - name: Run update script and integration tests
       env:
         DISPLAY: :99
       run: |
         sudo Xvfb :99 -ac &
         python malagacalendar.py
+        PYTHONPATH=. pytest -v
 
-    - name: Commit and push if changes
+    - name: Commit and push if calendar changed
       run: |
         git config --global user.name "GitHub Action Bot"
         git config --global user.email "github-actions-bot@users.noreply.github.com"
-        git add partidos.ics
-        # Comprobar si hay cambios para commitear
-        if git diff --staged --quiet; then
-          echo "No hay cambios en el calendario, no se requiere commit."
+        # Solo hacer commit si partidos.ics ha tenido algún cambio real (nuevo resultado, horario o recinto)
+        if git diff --quiet partidos.ics; then
+          echo "No hay cambios en partidos.ics, no se requiere commit."
         else
+          git add partidos.ics index.html
           git commit -m "Actualización automática de calendario 🤖"
           git push
         fi
