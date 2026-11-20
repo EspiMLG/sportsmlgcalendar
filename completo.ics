@@ -282,13 +282,13 @@ DESCRIPTION:Resultado Unicaja: 94 - 66 | Basketball Champions League (Liga
 LOCATION:Palacio de Deportes José María Martín Carpena\, Málaga
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:CD Torre de Casabermeja vs Heredia 21 FS
+SUMMARY:CD Torre de Casabermeja vs Heredia 21 FS (5 - 2)
 DTSTART:20261120T203000Z
 DTEND:20261120T223000Z
-DTSTAMP:20261118T131914Z
+DTSTAMP:20261120T221500Z
 UID:20261120-CDTorredeCasabermejavsHeredia21FS@sportsmlg.com
-DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior 
- F.S. (Málaga) - J5)
+DESCRIPTION:Resultado Heredia 21 FS: 5 - 2 | 2ª Andaluza Femenina Sénior
+  F.S. (Málaga) - J5
 LOCATION:Pabellón Municipal de Casabermeja\, Málaga
 END:VEVENT
 BEGIN:VEVENT
