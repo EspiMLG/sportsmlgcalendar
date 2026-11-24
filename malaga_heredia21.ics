@@ -200,6 +200,16 @@ DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior
 LOCATION:Ciudad Deportiva de Carranque (Pabellón)\, Málaga
 END:VEVENT
 BEGIN:VEVENT
+SUMMARY:CD Coria vs Málaga CF
+DTSTART:20261202T020000Z
+DTEND:20261202T040000Z
+DTSTAMP:20261124T001649Z
+UID:20261202-CDCoriavsMálagaCF@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (Copa del Rey - Jornada 4) (Hora p
+ or confirmar)
+LOCATION:Estadio La Isla
+END:VEVENT
+BEGIN:VEVENT
 SUMMARY:CF Arriate vs Heredia 21 FS
 DTSTART:20261206T020000Z
 DTEND:20261206T040000Z
@@ -219,6 +229,15 @@ DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 15)
 LOCATION:Ramón Sánchez-Pizjuán
 END:VEVENT
 BEGIN:VEVENT
+SUMMARY:Málaga CF vs FC Barcelona
+DTSTART:20261212T173000Z
+DTEND:20261212T193000Z
+DTSTAMP:20261124T001649Z
+UID:20261212-MálagaCFvsFCBarcelona@sportsmlg.com
+DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 16)
+LOCATION:Estadio La Rosaleda\, Málaga
+END:VEVENT
+BEGIN:VEVENT
 SUMMARY:Club Torremolinos FS vs Heredia 21 FS
 DTSTART:20261213T020000Z
 DTEND:20261213T040000Z
@@ -227,16 +246,6 @@ UID:20261213-ClubTorremolinosFSvsHeredia21FS@sportsmlg.com
 DESCRIPTION:Próximo partido Heredia 21 FS (2ª Andaluza Femenina Sénior 
  F.S. (Málaga) - J8) (Hora por confirmar)
 LOCATION:Pabellón Municipal San Miguel\, Torremolinos (Málaga)
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Málaga CF vs FC Barcelona
-DTSTART:20261213T020000Z
-DTEND:20261213T040000Z
-DTSTAMP:20261118T102604Z
-UID:20261213-MálagaCFvsFCBarcelona@sportsmlg.com
-DESCRIPTION:Próximo partido Málaga CF (LALIGA EA SPORTS - Jornada 16) (H
- ora por confirmar)
-LOCATION:Estadio La Rosaleda\, Málaga
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Heredia 21 FS vs CD Sampedreño Futsal
