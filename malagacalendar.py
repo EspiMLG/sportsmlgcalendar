@@ -48,10 +48,12 @@ DEFAULT_HEADERS = {
 
 ESTADIO_MALAGA_LOCAL = "Estadio La Rosaleda, Málaga"
 PABELLON_UNICAJA_LOCAL = "Palacio de Deportes José María Martín Carpena, Málaga"
-PABELLON_HEREDIA21_LOCAL = "Ciudad Deportiva de Carranque (Pabellón), Málaga"
+PABELLON_HEREDIA21_LOCAL = "Pabellón Cubierto Rubén Ruzafa (Rincón de la Victoria)"
 
 RFAF_CODIGO_EQUIPO_HEREDIA21 = "46655793"
 RFAF_CODGRUPO_HEREDIA21_DEFAULT = "48466076"
+RFAF_CODCOMPETICION_HEREDIA21_DEFAULT = "48466075"
+RFAF_CODTEMPORADA_HEREDIA21_DEFAULT = "22"
 RFAF_URL_EQUIPO_HEREDIA21 = (
     f"https://www.rfaf.es/pnfg/NPcd/NFG_VisEquipos?cod_primaria=1000119&Codigo_Equipo={RFAF_CODIGO_EQUIPO_HEREDIA21}"
 )
@@ -434,23 +436,63 @@ def resolver_pabellon_basket(equipo_local, pabellon_web=None):
     return "Pabellón por confirmar"
 
 
+def limpiar_campo_rfaf(campo_raw):
+    """Limpia el nombre de un campo o pabellón extraído de la RFAF (sufijos de superficie como (PQ), (XC), (P), etc.)."""
+    if not campo_raw:
+        return ""
+    limpio = str(campo_raw).replace("\xa0", " ").strip()
+    # Eliminar códigos de superficie al final: (PQ), (XC), (P), (C), (H), (T), (A), (S)
+    limpio = re.sub(r"\s*\((?:PQ|XC|P|C|H|T|A|S)\)\s*$", "", limpio, flags=re.IGNORECASE)
+    # Limpiar prefijos redundantes como "Pista PISTA EXTERIOR"
+    limpio = re.sub(r"^Pista\s+(?=PISTA\b)", "", limpio, flags=re.IGNORECASE)
+    limpio = re.sub(r"\s+", " ", limpio).strip()
+    return limpio
+
+
 def resolver_pabellon_futsal(equipo_local, pabellon_web=None):
     """Devuelve siempre el pabellón o pista oficial para un partido de fútbol sala femenino (RFAF)."""
     local_norm = normalizar_nombre_equipo(equipo_local, "futsal")
-    if "heredia 21" in local_norm.lower():
-        return PABELLON_HEREDIA21_LOCAL
+    es_heredia_local = "heredia 21" in local_norm.lower()
 
     if pabellon_web:
-        pab_limpio = pabellon_web.strip()
+        pab_limpio = limpiar_campo_rfaf(pabellon_web)
         genericos = {
             "pabellón por confirmar", "pabellon por confirmar",
             "pabellón (resultado)", "pabellon (resultado)",
             "por confirmar", "tbd", "-"
         }
         if pab_limpio and pab_limpio.lower() not in genericos:
-            if "carranque" in pab_limpio.lower():
+            pab_sin = _quitar_acentos(pab_limpio.lower())
+            if "ruben ruzafa" in pab_sin or "rincon de la victoria" in pab_sin:
                 return PABELLON_HEREDIA21_LOCAL
+            if "carranque" in pab_sin:
+                if es_heredia_local:
+                    return PABELLON_HEREDIA21_LOCAL
+                return "Ciudad Deportiva de Carranque (Pabellón), Málaga"
+            if "malvaloca" in pab_sin:
+                return "Complejo Deportivo de Malvaloca (Pista Ext.), Málaga"
+            if "la princesa" in pab_sin:
+                return PABELLONES_FUTSAL["UD Playas de Málaga FS"]
+            if "cuevas bajas" in pab_sin:
+                return PABELLONES_FUTSAL["CD Cuevas Bajas Atlético"]
+            if "la vega" in pab_sin and "algarrobo" in pab_sin:
+                return PABELLONES_FUTSAL["CD Axarquía FS Algarrobo"]
+            if "casabermeja" in pab_sin or "casabemeja" in pab_sin:
+                return PABELLONES_FUTSAL["CD Torre de Casabermeja"]
+            if "el torcal" in pab_sin:
+                return PABELLONES_FUTSAL["CV AV El Torcal"]
+            if "arriate" in pab_sin:
+                return PABELLONES_FUTSAL["CF Arriate"]
+            if "san miguel" in pab_sin and "torremolinos" in pab_sin:
+                return PABELLONES_FUTSAL["Club Torremolinos FS"]
+            if "elena benitez" in pab_sin:
+                return PABELLONES_FUTSAL["CD Sampedreño Futsal"]
+            if "campillos" in pab_sin:
+                return PABELLONES_FUTSAL["CD Campillos FS Femenino"]
             return pab_limpio
+
+    if es_heredia_local:
+        return PABELLON_HEREDIA21_LOCAL
 
     if local_norm in PABELLONES_FUTSAL:
         return PABELLONES_FUTSAL[local_norm]
@@ -1366,15 +1408,127 @@ def _descargar_html_rfaf(url, session, marcadores_esperados=None, reintentos=3):
     return None
 
 
-def parsear_partidos_heredia21_html(html, nombre_competicion="2ª Andaluza Femenina Sénior F.S."):
+def parsear_campos_rfaf_html(html):
+    """
+    Extrae el campo designado (y fecha/hora si figura) de cada partido desde el HTML de RFAF,
+    soportando tanto la vista de jornada (`NFG_CmpJornada`) como el calendario extendido
+    (`NFG_VisCalendario_Vis` con `CDetalle=1`).
+    Devuelve un diccionario indexado por `(equipo_local_norm, equipo_visitante_norm)` y
+    `(fecha_dd_mm_yyyy, equipo_local_norm, equipo_visitante_norm)`.
+    """
+    campos_map = {}
+    if not html:
+        return campos_map
+
+    soup = BeautifulSoup(html, "html.parser")
+
+    def _registrar(raw_loc, raw_vis, campo_raw, fecha_hora_texto=""):
+        campo_limpio = limpiar_campo_rfaf(campo_raw)
+        if not campo_limpio:
+            return
+        loc_norm = normalizar_nombre_equipo(raw_loc, "futsal")
+        vis_norm = normalizar_nombre_equipo(raw_vis, "futsal")
+        if not loc_norm or not vis_norm or loc_norm == "Desconocido" or vis_norm == "Desconocido":
+            return
+
+        m_f = re.search(r"(\d{2}-\d{2}-\d{4})", fecha_hora_texto or "")
+        m_h = re.search(r"(\d{1,2}:\d{2})", fecha_hora_texto or "")
+        fecha_str = m_f.group(1) if m_f else None
+        hora_str = m_h.group(1) if m_h else None
+
+        info = {"campo": campo_limpio, "fecha": fecha_str, "hora": hora_str}
+        campos_map[(loc_norm, vis_norm)] = info
+        if fecha_str:
+            campos_map[(fecha_str, loc_norm, vis_norm)] = info
+
+    # 1. Formato NFG_VisCalendario_Vis (CDetalle=1): filas div.row con col-sm-7 (tabla equipos) y col-sm-5 (fa-map-marker)
+    for row in soup.find_all("div", class_="row"):
+        if row.find("div", class_="row"):
+            continue
+        col_info = row.find("div", class_=lambda c: c and "col-sm-5" in c)
+        tabla_eq = row.find("table")
+        if not col_info or not tabla_eq:
+            continue
+        tds = tabla_eq.find_all("td")
+        if len(tds) < 3:
+            continue
+        raw_local = " ".join(tds[0].get_text(" ", strip=True).split())
+        raw_visitante = " ".join(tds[2].get_text(" ", strip=True).split())
+
+        partes_campo = []
+        partes_fecha = []
+        for frag in col_info.stripped_strings:
+            texto_frag = " ".join(frag.replace("\xa0", " ").split())
+            if not texto_frag:
+                continue
+            if re.search(r"\d{2}-\d{2}-\d{4}", texto_frag):
+                partes_fecha.append(texto_frag)
+            else:
+                partes_campo.append(texto_frag)
+
+        if partes_campo:
+            _registrar(raw_local, raw_visitante, " ".join(partes_campo), " ".join(partes_fecha))
+
+    # 2. Formato NFG_CmpJornada: tablas de partido con enlaces NFG_VisEquipos y NFG_VisCampos
+    for table in soup.find_all("table"):
+        if table.find("table"):
+            continue
+        a_campo = table.find("a", href=re.compile(r"NFG_VisCampos"))
+        if not a_campo:
+            continue
+        enlaces_eq = table.find_all("a", href=re.compile(r"NFG_VisEquipos"))
+        if len(enlaces_eq) >= 2:
+            raw_local = " ".join(enlaces_eq[0].get_text(" ", strip=True).split())
+            raw_visitante = " ".join(enlaces_eq[1].get_text(" ", strip=True).split())
+        else:
+            div_l = table.find("div", class_="font_widgetL")
+            div_v = table.find("div", class_="font_widgetV")
+            if not div_l or not div_v:
+                continue
+            raw_local = " ".join(div_l.get_text(" ", strip=True).split())
+            raw_visitante = " ".join(div_v.get_text(" ", strip=True).split())
+
+        campo_raw = " ".join(a_campo.get_text(" ", strip=True).split())
+        horarios = [" ".join(sp.get_text(" ", strip=True).split()) for sp in table.find_all("span", class_="horario")]
+        _registrar(raw_local, raw_visitante, campo_raw, " ".join(horarios))
+
+    return campos_map
+
+
+def _extraer_campo_de_mapa(campos_rfaf, claves):
+    """Busca en `campos_rfaf` por orden de prioridad de claves y devuelve (campo_str, hora_str)."""
+    if not campos_rfaf:
+        return None, None
+    for k in claves:
+        if k in campos_rfaf:
+            val = campos_rfaf[k]
+            if isinstance(val, dict):
+                return val.get("campo"), val.get("hora")
+            if isinstance(val, str):
+                return val, None
+    return None, None
+
+
+def parsear_partidos_heredia21_html(
+    html,
+    nombre_competicion="2ª Andaluza Femenina Sénior F.S.",
+    campos_rfaf=None,
+):
     """
     Parsea la tabla de partidos de RFAF (NFG_VisCompeticiones_Grupo) para el
-    Club Deportivo Heredia 21 FS, devolviendo (proximos, resultados).
+    Club Deportivo Heredia 21 FS, cruzando opcionalmente con el mapa de campos
+    designados en cada jornada (`NFG_CmpJornada` / `NFG_VisCalendario_Vis`)
+    y devolviendo `(proximos, resultados)`.
     """
     proximos = []
     resultados = []
     if not html:
         return proximos, resultados
+
+    mapa_campos = dict(campos_rfaf) if campos_rfaf else {}
+    campos_inline_html = parsear_campos_rfaf_html(html)
+    for k, v in campos_inline_html.items():
+        mapa_campos.setdefault(k, v)
 
     soup = BeautifulSoup(html, "html.parser")
     filas = soup.find_all("tr")
@@ -1398,6 +1552,7 @@ def parsear_partidos_heredia21_html(html, nombre_competicion="2ª Andaluza Femen
             if not match_fecha:
                 continue
 
+            fecha_str = match_fecha.group(0)
             dia_int = int(match_fecha.group(1))
             mes_int = int(match_fecha.group(2))
             ano_int = int(match_fecha.group(3))
@@ -1410,7 +1565,32 @@ def parsear_partidos_heredia21_html(html, nombre_competicion="2ª Andaluza Femen
             equipo_visitante = normalizar_nombre_equipo(raw_visitante, "futsal")
             name = f"{equipo_local} vs {equipo_visitante}"
 
+            etiqueta_jornada = f"J{jornada_raw}" if jornada_raw.isdigit() else jornada_raw
+
+            # Detectar campo designado en la propia fila (si existe) o en el mapa de NFG_CmpJornada / NFG_VisCalendario_Vis
+            campo_designado = None
+            a_campo_fila = fila.find("a", href=re.compile(r"NFG_VisCampos"))
+            if a_campo_fila:
+                campo_designado = " ".join(a_campo_fila.get_text(" ", strip=True).split())
+            elif len(h5_equipos_fecha) >= 4:
+                campo_designado = " ".join(h5_equipos_fecha[3].get_text(" ", strip=True).split())
+
+            campo_mapa, hora_mapa = _extraer_campo_de_mapa(
+                mapa_campos,
+                [
+                    (jornada_raw, equipo_local, equipo_visitante),
+                    (etiqueta_jornada, equipo_local, equipo_visitante),
+                    (fecha_str, equipo_local, equipo_visitante),
+                    (equipo_local, equipo_visitante),
+                ],
+            )
+            if not campo_designado and campo_mapa:
+                campo_designado = campo_mapa
+
             match_hora = re.search(r'(\d{1,2}):(\d{2})', fecha_hora_raw)
+            if not match_hora and hora_mapa:
+                match_hora = re.search(r'(\d{1,2}):(\d{2})', hora_mapa)
+
             if match_hora:
                 hora_int = int(match_hora.group(1))
                 min_int = int(match_hora.group(2))
@@ -1427,9 +1607,8 @@ def parsear_partidos_heredia21_html(html, nombre_competicion="2ª Andaluza Femen
             fecha_hora_inicio_utc = fecha_hora_inicio_local.astimezone(dt.timezone.utc)
             fecha_hora_fin_utc = fecha_hora_fin_local.astimezone(dt.timezone.utc)
 
-            estadio_final = resolver_pabellon_futsal(equipo_local)
+            estadio_final = resolver_pabellon_futsal(equipo_local, campo_designado)
 
-            etiqueta_jornada = f"J{jornada_raw}" if jornada_raw.isdigit() else jornada_raw
             info_comp = " - ".join(p for p in [nombre_competicion, etiqueta_jornada] if p)
 
             texto_marcador = " ".join(tds[2].get_text(" ", strip=True).split())
@@ -1474,10 +1653,81 @@ def parsear_partidos_heredia21_html(html, nombre_competicion="2ª Andaluza Femen
     return proximos, resultados
 
 
+def obtener_campos_designados_rfaf(
+    session,
+    codgrupo,
+    codcompeticion=RFAF_CODCOMPETICION_HEREDIA21_DEFAULT,
+    codtemporada=RFAF_CODTEMPORADA_HEREDIA21_DEFAULT,
+    html_grupo=None,
+):
+    """
+    Obtiene el mapa de campos designados en cada jornada de la RFAF para un grupo/competición.
+    1) Consulta `NFG_VisCalendario_Vis` con `CDetalle=1` (que devuelve todas las jornadas con su campo en una sola petición).
+    2) Si alguna jornada con horario confirmado aún no tiene campo en el mapa (o si `NFG_VisCalendario_Vis` no devolvió datos),
+       consulta `NFG_CmpJornada` para esa jornada específica.
+    """
+    campos_rfaf = {}
+    if not codcompeticion:
+        return campos_rfaf
+
+    url_calendario_det = (
+        f"https://www.rfaf.es/pnfg/NPcd/NFG_VisCalendario_Vis"
+        f"?cod_primaria=1000120&codtemporada={codtemporada}"
+        f"&codcompeticion={codcompeticion}&codgrupo={codgrupo}&CDetalle=1"
+    )
+    html_cal = _descargar_html_rfaf(
+        url_calendario_det,
+        session,
+        marcadores_esperados=["fa-map-marker", "HEREDIA", "NFG_"],
+    )
+    if html_cal:
+        campos_rfaf.update(parsear_campos_rfaf_html(html_cal))
+
+    # Verificar si alguna jornada con horario confirmado en html_grupo necesita consulta puntual a NFG_CmpJornada
+    jornadas_pendientes = []
+    if html_grupo:
+        soup_g = BeautifulSoup(html_grupo, "html.parser")
+        for fila in soup_g.find_all("tr"):
+            tds = fila.find_all("td", recursive=False)
+            if len(tds) != 3:
+                continue
+            h5s = tds[1].find_all("h5")
+            if len(h5s) < 3:
+                continue
+            j_raw = " ".join(tds[0].get_text(" ", strip=True).split())
+            if not j_raw.isdigit():
+                continue
+            loc = normalizar_nombre_equipo(" ".join(h5s[0].get_text(" ", strip=True).split()), "futsal")
+            vis = normalizar_nombre_equipo(" ".join(h5s[1].get_text(" ", strip=True).split()), "futsal")
+            fh_raw = " ".join(h5s[2].get_text(" ", strip=True).split())
+            tiene_hora = bool(re.search(r"\d{1,2}:\d{2}", fh_raw))
+            if (loc, vis) not in campos_rfaf and (tiene_hora or not campos_rfaf):
+                if j_raw not in jornadas_pendientes:
+                    jornadas_pendientes.append(j_raw)
+
+    for j_num in jornadas_pendientes[:6]:
+        url_jornada = (
+            f"https://www.rfaf.es/pnfg/NPcd/NFG_CmpJornada"
+            f"?cod_primaria=1000120&CodCompeticion={codcompeticion}"
+            f"&CodGrupo={codgrupo}&CodTemporada={codtemporada}&CodJornada={j_num}"
+        )
+        html_jor = _descargar_html_rfaf(
+            url_jornada,
+            session,
+            marcadores_esperados=["NFG_VisCampos", "HEREDIA", "NFG_"],
+        )
+        if html_jor:
+            campos_rfaf.update(parsear_campos_rfaf_html(html_jor))
+        time.sleep(0.25)
+
+    return campos_rfaf
+
+
 def obtener_partidos_heredia21_rfaf(driver=None, session=None):
     """
     Obtiene todos los partidos (próximos y resultados) de la temporada actual del
-    Club Deportivo Heredia 21 FS desde la web oficial de la RFAF.
+    Club Deportivo Heredia 21 FS desde la web oficial de la RFAF, incluyendo el
+    campo designado en cada jornada (`NFG_VisCalendario_Vis` / `NFG_CmpJornada`).
     """
     print("Buscando partidos de Heredia 21 Femenino FS en RFAF...")
     s = session or requests.Session()
@@ -1495,6 +1745,8 @@ def obtener_partidos_heredia21_rfaf(driver=None, session=None):
     if html_comp:
         soup_comp = BeautifulSoup(html_comp, "html.parser")
         for tr in soup_comp.find_all("tr"):
+            if tr.find("tr"):
+                continue
             a_grp = tr.find("a", href=re.compile(r"NFG_VisCompeticiones_Grupo.*codgrupo=\d+"))
             if not a_grp:
                 continue
@@ -1505,16 +1757,35 @@ def obtener_partidos_heredia21_rfaf(driver=None, session=None):
             # Evitar consultar el grupo de la liga 2025/26 anterior (46676649)
             if codgrupo == "46676649":
                 continue
+
+            codcompeticion = (
+                RFAF_CODCOMPETICION_HEREDIA21_DEFAULT
+                if codgrupo == RFAF_CODGRUPO_HEREDIA21_DEFAULT
+                else None
+            )
+            a_comp = tr.find("a", href=re.compile(r"codcompeticion=\d+", re.IGNORECASE))
+            if a_comp:
+                m_comp = re.search(r"codcompeticion=(\d+)", a_comp.get("href", ""), flags=re.IGNORECASE)
+                if m_comp:
+                    codcompeticion = m_comp.group(1)
+
             tds_tr = tr.find_all("td")
             nombre_comp = " ".join(tds_tr[0].get_text(" ", strip=True).split()) if tds_tr else "2ª Andaluza Femenina Sénior F.S."
-            if (codgrupo, nombre_comp) not in grupos_a_consultar:
-                grupos_a_consultar.append((codgrupo, nombre_comp))
+            item_grupo = (codgrupo, codcompeticion, nombre_comp)
+            if not any(g[0] == codgrupo for g in grupos_a_consultar):
+                grupos_a_consultar.append(item_grupo)
 
     if not grupos_a_consultar:
-        grupos_a_consultar = [(RFAF_CODGRUPO_HEREDIA21_DEFAULT, "2ª Andaluza Femenina Sénior F.S. (Málaga)")]
+        grupos_a_consultar = [
+            (
+                RFAF_CODGRUPO_HEREDIA21_DEFAULT,
+                RFAF_CODCOMPETICION_HEREDIA21_DEFAULT,
+                "2ª Andaluza Femenina Sénior F.S. (Málaga)",
+            )
+        ]
 
     todos_eventos = []
-    for codgrupo, nombre_comp in grupos_a_consultar:
+    for codgrupo, codcompeticion, nombre_comp in grupos_a_consultar:
         url_grupo = (
             f"https://www.rfaf.es/pnfg/NPcd/NFG_VisCompeticiones_Grupo"
             f"?cod_primaria=1000123&codequipo={RFAF_CODIGO_EQUIPO_HEREDIA21}&codgrupo={codgrupo}"
@@ -1531,7 +1802,17 @@ def obtener_partidos_heredia21_rfaf(driver=None, session=None):
                 print(f"AVISO: Fallback Selenium RFAF falló para grupo {codgrupo}: {e}")
 
         if html_grupo:
-            prox, res = parsear_partidos_heredia21_html(html_grupo, nombre_comp)
+            campos_rfaf = obtener_campos_designados_rfaf(
+                s,
+                codgrupo=codgrupo,
+                codcompeticion=codcompeticion,
+                html_grupo=html_grupo,
+            )
+            prox, res = parsear_partidos_heredia21_html(
+                html_grupo,
+                nombre_comp,
+                campos_rfaf=campos_rfaf,
+            )
             todos_eventos.extend(prox)
             todos_eventos.extend(res)
         time.sleep(0.3)
@@ -1553,6 +1834,8 @@ def _detectar_deporte_texto(summary="", description="", location="", deporte_exp
         or "fútbol sala" in texto
         or "futbol sala" in texto
         or "carranque" in texto
+        or "rubén ruzafa" in texto
+        or "ruben ruzafa" in texto
     ):
         return "futsal"
     if (

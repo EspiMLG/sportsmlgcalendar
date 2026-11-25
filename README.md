@@ -27,10 +27,10 @@ En la web puedes marcar con casillas exactamente a qué equipos quieres suscribi
 1. **Extracción Multicapa (A prueba de fallos):**
    - **Málaga CF:** Consume directamente la API oficial paginada de `malagacf.com` (`/api/football_list/football_match`) para obtener horarios exactos en UTC, estadios oficiales, competición y jornada, con *fallback* automático mediante **Selenium** al DOM de la web oficial y enriquecimiento en tiempo real desde **Flashscore**.
    - **Unicaja Baloncesto:** Unifica en una sola pasada la tabla oficial de `unicajabaloncesto.com/calendario`, el feed `/calendario/ics` y las fichas individuales `/partido/ver/id/<id>` en paralelo (`ThreadPoolExecutor`) para obtener el pabellón oficial exacto de cada encuentro, competición y fechas provisionales (`POR CONFIRMAR`).
-   - **CD Heredia 21 Femenino FS (RFAF):** Conecta con el sistema oficial `pnfg` de la **Real Federación Andaluza de Fútbol (`rfaf.es`)**, gestionando automáticamente la sesión (`JSESSIONID`) y extrayendo todas las jornadas, horarios confirmados, resultados y pabellones de *2ª Andaluza Femenina Sénior F.S. (Málaga)*.
+   - **CD Heredia 21 Femenino FS (RFAF):** Conecta con el sistema oficial `pnfg` de la **Real Federación Andaluza de Fútbol (`rfaf.es`)**, gestionando automáticamente la sesión (`JSESSIONID`) y extrayendo todas las jornadas, horarios confirmados, resultados y el campo designado en cada jornada (`NFG_VisCalendario_Vis` / `NFG_CmpJornada`) de *2ª Andaluza Femenina Sénior F.S. (Málaga)*.
 
 2. **Resolución Inteligente de Estadios y Pabellones:**
-   - Asigna automáticamente el **Estadio La Rosaleda**, el **Palacio de Deportes José María Martín Carpena** y la **Ciudad Deportiva de Carranque (Pabellón)** cuando cada equipo juega en casa.
+   - Asigna automáticamente el **Estadio La Rosaleda**, el **Palacio de Deportes José María Martín Carpena** y el **Pabellón Cubierto Rubén Ruzafa (Rincón de la Victoria)** cuando cada equipo juega en casa (respetando además cualquier cambio de pista oficial designado por la RFAF en cada jornada).
    - Dispone de diccionarios completos de todos los estadios de **LaLiga (1ª y 2ª División)**, pabellones de **Liga Endesa (ACB) y BCL** y pabellones municipales de **Fútbol Sala en Málaga (RFAF)** para que ningún partido visitante quede sin recinto.
 
 3. **Motor de Reconciliación y Anti-Duplicados:**

@@ -73,9 +73,29 @@ def test_resolver_pabellon_basket():
 
 
 def test_resolver_pabellon_futsal():
-    # Local de Heredia 21 siempre Ciudad Deportiva de Carranque
+    # Local de Heredia 21 por defecto es Pabellón Cubierto Rubén Ruzafa (Rincón de la Victoria)
     assert mc.resolver_pabellon_futsal("Heredia 21 FS") == mc.PABELLON_HEREDIA21_LOCAL
+    assert "Rubén Ruzafa" in mc.PABELLON_HEREDIA21_LOCAL
     assert mc.resolver_pabellon_futsal("CLUB DEPORTIVO HEREDIA 21 FS", "Pabellón por confirmar") == mc.PABELLON_HEREDIA21_LOCAL
+    assert mc.resolver_pabellon_futsal(
+        "CLUB DEPORTIVO HEREDIA 21 FS",
+        "Rincón de la Victoria - Rubén Ruzafa Pabellón Municipal (Pabellón) (PQ)",
+    ) == mc.PABELLON_HEREDIA21_LOCAL
+    # Si RFAF aún muestra Carranque como placeholder de ficha en jornadas futuras sin confirmar
+    assert mc.resolver_pabellon_futsal(
+        "CLUB DEPORTIVO HEREDIA 21 FS",
+        "Málaga - Carranque Ciudad Deportiva (Pabellón) (PQ)",
+    ) == mc.PABELLON_HEREDIA21_LOCAL
+
+    # Si RFAF designa otro campo específico en la jornada (ej. J4 en Algarrobo o J3 en Malvaloca)
+    assert "La Vega" in mc.resolver_pabellon_futsal(
+        "CLUB DEPORTIVO HEREDIA 21 FS",
+        "Algarrobo - La Vega Pabellón Municipal (Pabellón) (P)",
+    )
+    assert "Malvaloca" in mc.resolver_pabellon_futsal(
+        "CLUB DEPORTIVO CAMPILLOS FUTBOL SALA FEMENINO",
+        "Pista PISTA EXTERIOR - COMPLEJO DEPORTIVO DE MALVALOCA (MÁLAGA) (XC)",
+    )
 
     # Visitantes de la liga malagueña
     assert "La Princesa" in mc.resolver_pabellon_futsal("C.D. U.D. PLAYAS DE MÁLAGA F.S.")
@@ -238,7 +258,51 @@ def test_parsear_partidos_heredia21_html():
     assert proximos[1]["name"] == "Heredia 21 FS vs CV AV El Torcal"
     assert proximos[1]["hora_confirmada"] is False
     assert "Hora por confirmar" in proximos[1]["descripcion"]
-    assert "Carranque" in proximos[1]["estadio"]
+    assert "Rubén Ruzafa" in proximos[1]["estadio"]
+
+    # Test de lectura de campos designados en NFG_VisCalendario_Vis (CDetalle=1) y NFG_CmpJornada
+    html_cal_det = f"""
+    <div class="row">
+      <div class="col-sm-7 col-xs-12">
+        <table width="100%">
+          <tr>
+            <td width="45%"><strong><span>CLUB DEPORTIVO HEREDIA 21 FS</span></strong></td>
+            <td>-</td>
+            <td width="45%"><strong><span>C.V. AV EL TORCAL</span></strong></td>
+          </tr>
+        </table>
+      </div>
+      <div class="col-sm-5 col-xs-12 right font_responsive">
+        <i class="fa fa-map-marker"></i> Rincón de la Victoria - Rubén Ruzafa Pabellón Municipal (Pabellón)&nbsp;(PQ)
+        <br/><i class="fa fa-clock"></i> 29-11-{ano_temp} - 21:00
+      </div>
+    </div>
+    """
+    html_cmp_jornada = f"""
+    <table width="100%">
+      <tr>
+        <td class="td_widget"><a href="NFG_VisEquipos?Codigo_Equipo=1">C.D. TORRE DE CASABERMEJA</a></td>
+        <td><span class="horario">20-11-{ano_temp}</span><span class="horario">21:30</span></td>
+        <td class="td_widget"><a href="NFG_VisEquipos?Codigo_Equipo=2">CLUB DEPORTIVO HEREDIA 21 FS</a></td>
+      </tr>
+      <tr>
+        <td colspan="9">
+          <a href="/pnfg/NPcd/NFG_VisCampos?Codigo_Campo=999">Pista PISTA EXTERIOR - COMPLEJO DEPORTIVO DE MALVALOCA (MÁLAGA)</a>
+        </td>
+      </tr>
+    </table>
+    """
+    campos_map = mc.parsear_campos_rfaf_html(html_cal_det)
+    campos_map.update(mc.parsear_campos_rfaf_html(html_cmp_jornada))
+
+    prox_con_campos, _ = mc.parsear_partidos_heredia21_html(
+        html_rfaf,
+        "2ª Andaluza Femenina Sénior F.S.",
+        campos_rfaf=campos_map,
+    )
+    assert "Malvaloca" in prox_con_campos[0]["estadio"]
+    assert "Rubén Ruzafa" in prox_con_campos[1]["estadio"]
+    assert prox_con_campos[1]["hora_confirmada"] is True
 
 
 # --- 4. TESTS DE FLASHSCORE (FILTRO AMISTOSOS Y LIMPIEZA SVG) ---
@@ -458,7 +522,9 @@ def test_integracion_partidos_ics_real():
         if "Heredia 21 FS" in summary:
             partidos_heredia21 += 1
             if summary.startswith("Heredia 21 FS vs "):
-                assert "Carranque" in location, f"Heredia 21 local sin Carranque: {summary} -> {location}"
+                assert (
+                    "Rubén Ruzafa" in location or "La Vega" in location
+                ), f"Heredia 21 local sin Rubén Ruzafa ni campo RFAF designado: {summary} -> {location}"
 
         # 3. Verificar que no existen partidos duplicados en una ventana de ±12 días
         titulo_base = summary.split(" (")[0].strip()
